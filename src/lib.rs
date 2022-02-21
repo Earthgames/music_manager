@@ -1,6 +1,6 @@
 use directories::UserDirs;
 use glob::glob;
-use std::env;
+use std::fs; //instead of mv can I use this ??
 use std::io;
 use std::process::Command;
 
@@ -33,28 +33,6 @@ pub fn get_dir_music() -> Result<String, &'static str> {
     return Ok(result.to_string());
 }
 
-pub struct Config {
-    pub mode: String,
-}
-
-impl Config {
-    pub fn new(mut args: env::Args) -> Result<(), &'static str> {
-        args.next();
-
-        let mode = match args.next() {
-            Some(arg) => arg,
-            None => return Err("Didn't get a mode"),
-        };
-
-        match mode.as_str() {
-            "dl" => Ok(()),
-            "tg" => Ok(()),
-            "gn" => Ok(()),
-            _other => Err("mode not found"),
-        }
-    }
-}
-
 pub fn search<'a>(query: &str, contents: Vec<String>) -> Vec<String> {
     let mut results = Vec::new();
 
@@ -67,20 +45,11 @@ pub fn search<'a>(query: &str, contents: Vec<String>) -> Vec<String> {
     results
 }
 
-pub fn download(mut args: env::Args) -> Result<(), &'static str> {
+pub fn download(webadress: &String, genre_type: &String) -> Result<(), &'static str> {
     // get user Music directory
     let music_dir = match get_dir_music() {
         Ok(dir) => dir,
         Err(e) => return Err(e),
-    };
-
-    let webadress = match args.next() {
-        Some(arg) => arg,
-        None => return Err("Didn't get a webadress"),
-    };
-    let genre_type = match args.next() {
-        Some(arg) => arg,
-        None => return Err("Didn't get a genre_type"),
     };
 
     // make String with path to a tmp dir
@@ -143,8 +112,56 @@ pub fn move_files(target_files: Vec<String>, target_dir: &str) -> Result<(), &'s
         .expect("mv failed to execute");
 
     if !move_files.success() {
-        return Err("Could not move files with mv");
+        return Err("Failed to move files with mv");
     };
-    println!("moved {} to {}", target_files.join(" "), target_dir);
+    // if target_files.len() > 3 {
+    //     println!("moved {} files to {}", target_files.len(), target_dir);
+    //     return Ok(());
+    // }
+    println!(
+        "moved the files: {} to the folder:\n {}",
+        target_files.join("\n"),
+        target_dir
+    );
+    Ok(())
+}
+
+pub fn genres(genre: &Option<String>) -> Result<(), &'static str> {
+    let music_dir = match get_dir_music() {
+        Ok(dir) => dir,
+        Err(e) => return Err(e),
+    };
+
+    let genre_dirs = match read_dir(format!("{}{}", music_dir, "/youtube/*").as_str()) {
+        Ok(dir) => dir,
+        Err(e) => {
+            eprintln!("{:?}", e);
+            return Err("something went wrong while reading the genre/type directories");
+        }
+    };
+
+    if genre == &None {
+        for genre_dir in genre_dirs {
+            let discription_path = format!("{}/discription", genre_dir);
+            let contents = fs::read_to_string(discription_path)
+                .expect("Something went wrong reading the file");
+            for line in contents.lines() {
+                let parts = line.split("=");
+                let vec: Vec<&str> = parts.collect();
+                if vec[0].trim() == "name" {
+                    println!("{}", vec[1].trim());
+                } else {
+                    println!("{} \n", vec[1].trim());
+                }
+                // println!("{}", line);
+            }
+        }
+        return Ok(());
+        //print all genres and their discriptions
+    };
+
+    // check if there are arguments
+    // like new genre which needs a titel and a discription
+    // or if there is a specific genre and print their discription form that genre
     Ok(())
 }
