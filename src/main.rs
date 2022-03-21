@@ -18,7 +18,7 @@ enum Commands {
         #[clap(default_value_t = String::from("other"))]
         genre: String,
     },
-    /// print genres
+    /// print genres with a discription
     Genres { genre: Option<String> },
 }
 
@@ -38,7 +38,7 @@ fn main() {
         Commands::Genres { genre } => match genres(genre) {
             Ok(_t) => (),
             Err(err) => {
-                eprintln!("there was an error while running mode downloading: {}", err);
+                eprintln!("there was an error while running mode genres: {}", err);
                 process::exit(1);
             }
         },

@@ -132,7 +132,9 @@ pub fn genres(genre: &Option<String>) -> Result<(), &'static str> {
         Err(e) => return Err(e),
     };
 
-    let genre_dirs = match read_dir(format!("{}{}", music_dir, "/youtube/*").as_str()) {
+    let genre_dir = format!("{}{}", music_dir, "/youtube/");
+
+    let genre_dirs = match read_dir(&format!("{genre_dir}*")) {
         Ok(dir) => dir,
         Err(e) => {
             eprintln!("{:?}", e);
@@ -140,7 +142,8 @@ pub fn genres(genre: &Option<String>) -> Result<(), &'static str> {
         }
     };
 
-    if genre == &None {
+    if genre.is_none() {
+        // print all genres and their discription
         for genre_dir in genre_dirs {
             let discription_path = format!("{}/discription", genre_dir);
             let contents = fs::read_to_string(discription_path)
@@ -153,15 +156,46 @@ pub fn genres(genre: &Option<String>) -> Result<(), &'static str> {
                 } else {
                     println!("{} \n", vec[1].trim());
                 }
-                // println!("{}", line);
             }
         }
         return Ok(());
-        //print all genres and their discriptions
-    };
+    } else {
+        let genre = genre.as_ref().unwrap();
+        let size = genre_dir.len();
+        // println!("{:?}", genre_dirs);
+        for genre_type in genre_dirs {
+            // println!(
+            //     "{:?}, {:?}, {:?}, {genre_dir}",
+            //     genre_type,
+            //     genre_type.len(),
+            //     size
+            // );
 
+            let genre_type = &genre_type[(size)..];
+            // println!("{}", genre_type);
+
+            if &genre == &genre_type.trim() {
+                let discription_path = format!("{}{}/discription", genre_dir, genre_type);
+                let contents = fs::read_to_string(discription_path)
+                    .expect("Something went wrong reading the file");
+
+                for line in contents.lines() {
+                    let parts = line.split("=");
+                    let vec: Vec<&str> = parts.collect();
+
+                    if vec[0].trim() == "name" {
+                        println!("{}", vec[1].trim());
+                    } else {
+                        println!("{} \n", vec[1].trim());
+                    }
+                }
+                return Ok(());
+            }
+        }
+        return Err("could not find genre/type, don't use any arguments to print all genres");
+    }
     // check if there are arguments
     // like new genre which needs a titel and a discription
-    // or if there is a specific genre and print their discription form that genre
-    Ok(())
+    // or if there is a specific genre and print their discription from that genre
+    // Ok(())
 }
