@@ -1,5 +1,6 @@
 use directories::UserDirs;
 use glob::glob;
+use id3::{Tag, TagLike};
 use std::fs; //instead of mv can I use this ??
 use std::io;
 use std::process::Command;
@@ -175,20 +176,64 @@ pub fn genres(genre: &Option<String>) -> Result<(), &'static str> {
             // println!("{}", genre_type);
 
             if &genre == &genre_type.trim() {
-                let discription_path = format!("{}{}/discription", genre_dir, genre_type);
+                let genre_path = format!("{}{}/", genre_dir, genre_type);
+                let discription_path = format!("{}/discription", genre_path);
                 let contents = fs::read_to_string(discription_path)
                     .expect("Something went wrong reading the file");
+                let mut name: String = String::new();
+                let mut discription: String = String::new();
 
                 for line in contents.lines() {
                     let parts = line.split("=");
                     let vec: Vec<&str> = parts.collect();
 
                     if vec[0].trim() == "name" {
-                        println!("{}", vec[1].trim());
+                        name.push_str(vec[1].trim());
                     } else {
-                        println!("{} \n", vec[1].trim());
+                        discription.push_str(vec[1].trim());
                     }
                 }
+                let music_files = match read_dir(&format!("{genre_path}*.mp3")) {
+                    Ok(dir) => dir,
+                    Err(e) => {
+                        eprintln!("{:?}", e);
+                        return Err(
+                            "something went wrong while reading the genre/type directories",
+                        );
+                    }
+                };
+                if music_files.len() > 15 {
+                    //only print albums because output it will be to long
+                    let mut albums: Vec<String> = Vec::new();
+                    for music_file in music_files {
+                        let tag = Tag::read_from_path(music_file).unwrap();
+
+                        if let Some(album) = tag.album() {
+                            if !albums.contains(&album.to_string()) {
+                                albums.push(album.to_string());
+                                if let Some(artist) = tag.artist() {
+                                    println!("artist: {}", artist);
+                                }
+                                println!("album: {}\n", album);
+                            }
+                        }
+                    }
+                } else {
+                    // print all songs
+                    for music_file in music_files {
+                        let tag = Tag::read_from_path(music_file).unwrap();
+
+                        if let Some(title) = tag.title() {
+                            println!("title: {}", title);
+                        }
+
+                        if let Some(artist) = tag.artist() {
+                            println!("artist: {}\n", artist);
+                        }
+                    }
+                }
+                println!("name: {}\ndiscription: {}", name, discription);
+
                 return Ok(());
             }
         }
@@ -198,4 +243,25 @@ pub fn genres(genre: &Option<String>) -> Result<(), &'static str> {
     // like new genre which needs a titel and a discription
     // or if there is a specific genre and print their discription from that genre
     // Ok(())
+}
+
+pub fn modify() -> Result<(), Box<dyn std::error::Error>> {
+    let tag = Tag::read_from_path("/home/earthgames/Music/youtube/genshin_impact/Jade Moon Upon a Sea of Clouds - Disc 1 - Glazed Moon Over the Tides｜Genshin Impact - 009 09. A Transparent Moon (Liuli Pavilion) [t1O7LpOTBfM].mp3")?;
+
+    // Get a bunch of frames...
+    if let Some(artist) = tag.artist() {
+        println!("artist: {}", artist);
+    }
+    if let Some(title) = tag.title() {
+        println!("title: {}", title);
+    }
+    if let Some(album) = tag.album() {
+        println!("album: {}", album);
+    }
+
+    // Get frames before getting their content for more complex tags.
+    if let Some(artist) = tag.get("TPE1").and_then(|frame| frame.content().text()) {
+        println!("artist: {}", artist);
+    }
+    Ok(())
 }
