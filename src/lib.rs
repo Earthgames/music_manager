@@ -127,6 +127,40 @@ pub fn move_files(target_files: Vec<String>, target_dir: &str) -> Result<(), &'s
     Ok(())
 }
 
+fn get_genre_description(genre_path: &str) -> (String, String) {
+    let description_path = format!("{}/description", genre_path);
+    let contents =
+        fs::read_to_string(description_path).expect("Something went wrong reading the file");
+    let mut name: String = String::new();
+    let mut description: String = String::new();
+
+    // make sure to only give the name and not variable
+    for line in contents.lines() {
+        let parts = line.split("=");
+        let vec: Vec<&str> = parts.collect();
+
+        if vec[0].trim() == "name" {
+            if vec.len() <= 1 {
+                continue;
+            }
+            name = vec[1].trim().to_string();
+        } else if vec[0].trim() == "description" {
+            if vec.len() <= 1 {
+                continue;
+            }
+            description = vec[1].trim().to_string();
+        }
+    }
+    return (name, description);
+}
+
+// type to store music albums and songs
+#[derive(Eq, Ord, PartialEq, PartialOrd)]
+struct MusicTitle {
+    artist_name: String,
+    title_name: String,
+}
+
 pub fn genres(genre: &Option<String>) -> Result<(), &'static str> {
     let music_dir = match get_dir_music() {
         Ok(dir) => dir,
@@ -144,55 +178,21 @@ pub fn genres(genre: &Option<String>) -> Result<(), &'static str> {
     };
 
     if genre.is_none() {
-        // print all genres and their discription
+        // print all genres and their description
         for genre_dir in genre_dirs {
-            let discription_path = format!("{}/discription", genre_dir);
-            let contents = fs::read_to_string(discription_path)
-                .expect("Something went wrong reading the file");
-            for line in contents.lines() {
-                let parts = line.split("=");
-                let vec: Vec<&str> = parts.collect();
-                if vec[0].trim() == "name" {
-                    println!("{}", vec[1].trim());
-                } else {
-                    println!("{} \n", vec[1].trim());
-                }
-            }
+            let (name, description) = get_genre_description(&genre_dir);
+            println!("name: {}\ndescription: {}\n", name, description);
         }
         return Ok(());
     } else {
         let genre = genre.as_ref().unwrap();
         let size = genre_dir.len();
-        // println!("{:?}", genre_dirs);
         for genre_type in genre_dirs {
-            // println!(
-            //     "{:?}, {:?}, {:?}, {genre_dir}",
-            //     genre_type,
-            //     genre_type.len(),
-            //     size
-            // );
-
             let genre_type = &genre_type[(size)..];
-            // println!("{}", genre_type);
 
             if &genre == &genre_type.trim() {
                 let genre_path = format!("{}{}/", genre_dir, genre_type);
-                let discription_path = format!("{}/discription", genre_path);
-                let contents = fs::read_to_string(discription_path)
-                    .expect("Something went wrong reading the file");
-                let mut name: String = String::new();
-                let mut discription: String = String::new();
-
-                for line in contents.lines() {
-                    let parts = line.split("=");
-                    let vec: Vec<&str> = parts.collect();
-
-                    if vec[0].trim() == "name" {
-                        name.push_str(vec[1].trim());
-                    } else {
-                        discription.push_str(vec[1].trim());
-                    }
-                }
+                let (name, description) = get_genre_description(&genre_path);
                 let music_files = match read_dir(&format!("{genre_path}*.mp3")) {
                     Ok(dir) => dir,
                     Err(e) => {
@@ -204,6 +204,7 @@ pub fn genres(genre: &Option<String>) -> Result<(), &'static str> {
                 };
                 if music_files.len() > 15 {
                     //only print albums because output it will be to long
+                    let mut music_albums: Vec<MusicTitle> = Vec::new();
                     let mut albums: Vec<String> = Vec::new();
                     for music_file in music_files {
                         let tag = Tag::read_from_path(music_file).unwrap();
@@ -212,27 +213,45 @@ pub fn genres(genre: &Option<String>) -> Result<(), &'static str> {
                             if !albums.contains(&album.to_string()) {
                                 albums.push(album.to_string());
                                 if let Some(artist) = tag.artist() {
-                                    println!("artist: {}", artist);
+                                    music_albums.push(MusicTitle {
+                                        title_name: album.to_string(),
+                                        artist_name: artist.to_string(),
+                                    })
                                 }
-                                println!("album: {}\n", album);
                             }
                         }
                     }
+                    music_albums.sort();
+                    for music_album in music_albums {
+                        println!(
+                            "artist: {}\nalbume: {}\n",
+                            music_album.artist_name, music_album.title_name
+                        )
+                    }
                 } else {
                     // print all songs
+                    let mut music_songs: Vec<MusicTitle> = Vec::new();
                     for music_file in music_files {
                         let tag = Tag::read_from_path(music_file).unwrap();
 
                         if let Some(title) = tag.title() {
-                            println!("title: {}", title);
-                        }
-
-                        if let Some(artist) = tag.artist() {
-                            println!("artist: {}\n", artist);
+                            if let Some(artist) = tag.artist() {
+                                music_songs.push(MusicTitle {
+                                    title_name: title.to_string(),
+                                    artist_name: artist.to_string(),
+                                });
+                            }
                         }
                     }
+                    music_songs.sort();
+                    for music_album in music_songs {
+                        println!(
+                            "artist: {}\nsong: {}\n",
+                            music_album.artist_name, music_album.title_name
+                        )
+                    }
                 }
-                println!("name: {}\ndiscription: {}", name, discription);
+                println!("name: {}\ndescription: {}", name, description);
 
                 return Ok(());
             }
@@ -240,28 +259,7 @@ pub fn genres(genre: &Option<String>) -> Result<(), &'static str> {
         return Err("could not find genre/type, don't use any arguments to print all genres");
     }
     // check if there are arguments
-    // like new genre which needs a titel and a discription
-    // or if there is a specific genre and print their discription from that genre
+    // like new genre which needs a titel and a description
+    // or if there is a specific genre and print their description from that genre
     // Ok(())
-}
-
-pub fn modify() -> Result<(), Box<dyn std::error::Error>> {
-    let tag = Tag::read_from_path("/home/earthgames/Music/youtube/genshin_impact/Jade Moon Upon a Sea of Clouds - Disc 1 - Glazed Moon Over the Tides｜Genshin Impact - 009 09. A Transparent Moon (Liuli Pavilion) [t1O7LpOTBfM].mp3")?;
-
-    // Get a bunch of frames...
-    if let Some(artist) = tag.artist() {
-        println!("artist: {}", artist);
-    }
-    if let Some(title) = tag.title() {
-        println!("title: {}", title);
-    }
-    if let Some(album) = tag.album() {
-        println!("album: {}", album);
-    }
-
-    // Get frames before getting their content for more complex tags.
-    if let Some(artist) = tag.get("TPE1").and_then(|frame| frame.content().text()) {
-        println!("artist: {}", artist);
-    }
-    Ok(())
 }

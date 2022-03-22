@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand};
-use music_manager_helper::{download, genres, modify};
+use music_manager_helper::{download, genres};
 use std::process;
 
 #[derive(Parser)]
@@ -19,11 +19,7 @@ enum Commands {
         genre: String,
     },
     /// print genres with a discription
-    Genres {
-        genre: Option<String>,
-    },
-
-    Modify {},
+    Genres { genre: Option<String> },
 }
 
 fn main() {
@@ -43,13 +39,6 @@ fn main() {
             Ok(_t) => (),
             Err(err) => {
                 eprintln!("there was an error while running mode genres: {}", err);
-                process::exit(1);
-            }
-        },
-        Commands::Modify {} => match modify() {
-            Ok(_t) => (),
-            Err(err) => {
-                eprintln!("there was an error while running mode modify: {}", err);
                 process::exit(1);
             }
         },
