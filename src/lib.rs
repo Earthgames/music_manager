@@ -3,6 +3,7 @@ use glob::glob;
 use id3::{Tag, TagLike};
 use std::fs; //instead of mv can I use this ??
 use std::io;
+use std::io::ErrorKind;
 use std::process::Command;
 
 // gives a string with all the files in that match a path pattern
@@ -127,10 +128,18 @@ pub fn move_files(target_files: Vec<String>, target_dir: &str) -> Result<(), &'s
     Ok(())
 }
 
-fn get_genre_description(genre_path: &str) -> (String, String) {
+fn get_genre_description(genre_path: &str) -> Result<(String, String), &'static str> {
     let description_path = format!("{}/description", genre_path);
-    let contents =
-        fs::read_to_string(description_path).expect("Something went wrong reading the file");
+    let contents = match fs::read_to_string(description_path) {
+        Ok(e) => e,
+        Err(e) => match e.kind() {
+            ErrorKind::NotFound => return Err("could not find description file"),
+            other_error => {
+                eprintln!("{:?}", other_error);
+                return Err("something went wrong while reading/finding the description");
+            }
+        },
+    };
     let mut name: String = String::new();
     let mut description: String = String::new();
 
@@ -151,7 +160,7 @@ fn get_genre_description(genre_path: &str) -> (String, String) {
             description = vec[1].trim().to_string();
         }
     }
-    return (name, description);
+    return Ok((name, description));
 }
 
 // type to store music albums and songs
@@ -161,6 +170,7 @@ struct MusicTitle {
     title_name: String,
 }
 
+// print details about genres
 pub fn genres(genre: &Option<String>) -> Result<(), &'static str> {
     let music_dir = match get_dir_music() {
         Ok(dir) => dir,
@@ -180,7 +190,10 @@ pub fn genres(genre: &Option<String>) -> Result<(), &'static str> {
     if genre.is_none() {
         // print all genres and their description
         for genre_dir in genre_dirs {
-            let (name, description) = get_genre_description(&genre_dir);
+            let (name, description) = match get_genre_description(&genre_dir) {
+                Ok(e) => e,
+                Err(e) => return Err(e),
+            };
             println!("name: {}\ndescription: {}\n", name, description);
         }
         return Ok(());
@@ -192,7 +205,10 @@ pub fn genres(genre: &Option<String>) -> Result<(), &'static str> {
 
             if &genre == &genre_type.trim() {
                 let genre_path = format!("{}{}/", genre_dir, genre_type);
-                let (name, description) = get_genre_description(&genre_path);
+                let (name, description) = match get_genre_description(&genre_path) {
+                    Ok(e) => e,
+                    Err(e) => return Err(e),
+                };
                 let music_files = match read_dir(&format!("{genre_path}*.mp3")) {
                     Ok(dir) => dir,
                     Err(e) => {
@@ -221,6 +237,7 @@ pub fn genres(genre: &Option<String>) -> Result<(), &'static str> {
                             }
                         }
                     }
+                    //the actual print, sorted
                     music_albums.sort();
                     for music_album in music_albums {
                         println!(
@@ -243,6 +260,7 @@ pub fn genres(genre: &Option<String>) -> Result<(), &'static str> {
                             }
                         }
                     }
+                    //the actual print, sorted
                     music_songs.sort();
                     for music_album in music_songs {
                         println!(
