@@ -1,10 +1,11 @@
 use directories::UserDirs;
 use glob::glob;
-use id3::{Tag, TagLike};
+use id3::{Error, ErrorKind as id3ErrorKind, Tag, TagLike, Version};
 use std::fs; //instead of mv can I use this ??
 use std::io;
 use std::io::ErrorKind;
 use std::process::Command;
+use std::path::Path;
 
 // gives a string with all the files in that match a path pattern
 pub fn read_dir(dir: &str) -> Result<Vec<String>, io::Error> {
@@ -57,6 +58,11 @@ pub fn download(webadress: &String, genre_type: &String) -> Result<(), &'static 
     // make String with path to a tmp dir
     // might need to check and or create this dir
     let tmp_music_dir = format!("{}/tmp", music_dir);
+
+    if !Path::new(&tmp_music_dir).is_dir() {
+        eprintln!("the temporary directory is not in {}\n try making it there", &tmp_music_dir);
+        return Err("temporary directory not found")
+    }
 
     // download from yt with yt-dlp
     let youtube_download = Command::new("yt-dlp")
@@ -121,7 +127,7 @@ pub fn move_files(target_files: Vec<String>, target_dir: &str) -> Result<(), &'s
     //     return Ok(());
     // }
     println!(
-        "moved the files: {} to the folder:\n {}",
+        "moved the files:\n {} to the folder: {}",
         target_files.join("\n"),
         target_dir
     );
@@ -132,6 +138,10 @@ fn get_genre_description(genre_path: &str) -> Result<(String, String), &'static 
     let description_path = format!("{}/description", genre_path);
     let contents = match fs::read_to_string(description_path) {
         Ok(e) => e,
+        // Err(Error {
+        //     kind: ErrorKind::NotFound,
+        //     ..
+        // }) => return Err("could not find description file"),
         Err(e) => match e.kind() {
             ErrorKind::NotFound => return Err("could not find description file"),
             other_error => {
@@ -139,6 +149,10 @@ fn get_genre_description(genre_path: &str) -> Result<(String, String), &'static 
                 return Err("something went wrong while reading/finding the description");
             }
         },
+        // Err(err) => {
+        //     eprintln!("{:?}", other_error);
+        //     return Err("something went wrong while reading/finding the description");
+        // }
     };
     let mut name: String = String::new();
     let mut description: String = String::new();
@@ -179,7 +193,7 @@ pub fn genres(genre: &Option<String>) -> Result<(), &'static str> {
 
     let genre_dir = format!("{}{}", music_dir, "/youtube/");
 
-    let genre_dirs = match read_dir(&format!("{genre_dir}*")) {
+    let genre_dirs = match read_dir(&format!("{}*", genre_dir)) {
         Ok(dir) => dir,
         Err(e) => {
             eprintln!("{:?}", e);
@@ -209,7 +223,7 @@ pub fn genres(genre: &Option<String>) -> Result<(), &'static str> {
                     Ok(e) => e,
                     Err(e) => return Err(e),
                 };
-                let music_files = match read_dir(&format!("{genre_path}*.mp3")) {
+                let music_files = match read_dir(&format!("{}*.mp3", genre_path)) {
                     Ok(dir) => dir,
                     Err(e) => {
                         eprintln!("{:?}", e);
@@ -278,6 +292,28 @@ pub fn genres(genre: &Option<String>) -> Result<(), &'static str> {
     }
     // check if there are arguments
     // like new genre which needs a titel and a description
-    // or if there is a specific genre and print their description from that genre
     // Ok(())
+}
+
+fn _change_album(album_titel: &str, file_path: &str) -> Result<(), &'static str> {
+    let mut tag = match Tag::read_from_path(file_path) {
+        Ok(tag) => tag,
+        Err(Error {
+            kind: id3ErrorKind::NoTag,
+            ..
+        }) => Tag::new(),
+        Err(err) => {
+            eprintln!("{:?}", err);
+            return Err("something went wrong while reading the tag");
+        }
+    };
+    tag.set_album(album_titel);
+
+    match tag.write_to_path(file_path, Version::Id3v24) {
+        Ok(_e) => return Ok(()),
+        Err(err) => {
+            eprintln!("{:?}", err);
+            return Err("something went wrong while writing the tag");
+        }
+    }
 }
