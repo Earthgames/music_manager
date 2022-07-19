@@ -8,8 +8,8 @@ edition = "2021"
 
 [dependencies]
 directories = "4.0" # to get the user directories
-glob = "0.3.0" # to read directories
-id3 = "1.0.2" # to read and manipulate mp3 files
-clap = { version = "3.1.0", features = ["derive"] } # command line interface
-crossterm = "0.23.1" # to manipulate the terminal
-tui = "0.17.0" # user interface for the terminal
+glob = "0.3" # to read directories
+id3 = "1.2" # to read and manipulate mp3 files
+clap = { version = "3.2", features = ["derive"] } # command line interface
+crossterm = "0.24" # to manipulate the terminal
+tui = "0.18" # user interface for the terminal
