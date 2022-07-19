@@ -1,11 +1,14 @@
+// use clap::Subcommand;
 use directories::UserDirs;
 use glob::glob;
 use id3::{Error, ErrorKind as id3ErrorKind, Tag, TagLike, Version};
 use std::fs; //instead of mv can I use this ??
 use std::io;
 use std::io::ErrorKind;
+use std::os::unix::prelude::FileExt;
 use std::process::Command;
 use std::path::Path;
+use std::fs::File;
 
 // gives a string with all the files in that match a path pattern
 pub fn read_dir(dir: &str) -> Result<Vec<String>, io::Error> {
@@ -49,7 +52,7 @@ pub fn search<'a>(query: &str, contents: Vec<String>) -> Vec<String> {
 }
 
 pub fn download(webadress: &String, genre_type: &String) -> Result<(), &'static str> {
-    // get user Music directory
+// get user Music directory
     let music_dir = match get_dir_music() {
         Ok(dir) => dir,
         Err(e) => return Err(e),
@@ -138,24 +141,30 @@ fn get_genre_description(genre_path: &str) -> Result<(String, String), &'static 
     let description_path = format!("{}/description", genre_path);
     let contents = match fs::read_to_string(description_path) {
         Ok(e) => e,
-        // Err(Error {
-        //     kind: ErrorKind::NotFound,
-        //     ..
-        // }) => return Err("could not find description file"),
+       
         Err(e) => match e.kind() {
-            ErrorKind::NotFound => return Err("could not find description file"),
-            other_error => {
-                eprintln!("{:?}", other_error);
-                return Err("something went wrong while reading/finding the description");
-            }
+            ErrorKind::NotFound => {
+                println!("could not find description file in folder:{}", genre_path);
+                match create_genre_description(genre_path, None, None) {
+                    Ok(_) => return Ok((("New name created").to_string(),("New discription created").to_string())),
+                    Err(err) => {
+                        eprint!("{err}");
+                        return Err("could not create new description");
+                    },
+                };
+            
         },
-        // Err(err) => {
-        //     eprintln!("{:?}", other_error);
-        //     return Err("something went wrong while reading/finding the description");
-        // }
+        other_error => {
+            eprintln!("{:?}", other_error);
+            return Err("something went wrong while reading/finding the description");
+        },
+        
+        },
     };
-    let mut name: String = String::new();
-    let mut description: String = String::new();
+
+
+    let mut name = String::new();
+    let mut description = String::new();
 
     // make sure to only give the name and not variable
     for line in contents.lines() {
@@ -174,7 +183,7 @@ fn get_genre_description(genre_path: &str) -> Result<(String, String), &'static 
             description = vec[1].trim().to_string();
         }
     }
-    return Ok((name, description));
+    return Ok((name, description))
 }
 
 // type to store music albums and songs
@@ -205,8 +214,8 @@ pub fn genres(genre: &Option<String>) -> Result<(), &'static str> {
         // print all genres and their description
         for genre_dir in genre_dirs {
             let (name, description) = match get_genre_description(&genre_dir) {
-                Ok(e) => e,
-                Err(e) => return Err(e),
+                Ok(genre) => genre,
+                Err(err) => return Err(err),
             };
             println!("name: {}\ndescription: {}\n", name, description);
         }
@@ -316,4 +325,54 @@ fn _change_album(album_titel: &str, file_path: &str) -> Result<(), &'static str>
             return Err("something went wrong while writing the tag");
         }
     }
+}
+
+
+fn create_genre_description(genre_path: &str, genre_name: Option<&str>, genre_description:Option<&str>) -> Result<(), &'static str> {
+    // implement Path everywhere, makes things easier
+    // create path form the genre_path, for now
+    let path_str = format!("{}/description",genre_path);
+    let path = Path::new(&path_str);
+
+    let name = match genre_name {
+        Some(name) => name,
+        None => "default_name"
+    };
+
+    let description = match genre_description {
+        Some(description) => description,
+        None => "This is a default description for a genre. Please add your own"
+    };
+
+    let content = format!("name = {}\ndescription = {}", name, description);
+    
+    match create_file(path ,content) {
+        Ok(_) => return Ok(()),
+        Err(err) => {
+            eprintln!("could not create file; {}", err);
+            return Err("could not create a description");
+        }                                 
+
+
+    
+    }
+
+}
+
+fn create_file(path: &Path ,content: String) -> Result<(), &'static str>{
+
+    // create a file
+    let description_file = match  File::create(&path) {
+        Err(why) => {
+            eprintln!("couldn't create {}: {}", path.display(), why);
+            return Err("could not create a file");},
+        Ok(file) => file,
+    };
+
+    // write to the file
+    match description_file.write_at(content.as_bytes(), 0) {
+        Err(why) => panic!("couldn't write to {}: {}", path.display(), why),
+        Ok(_) => Ok(()),
+    }
+
 }
