@@ -53,6 +53,6 @@ fn create_file(path: &Path, content: String) -> Result<(), Box<dyn std::error::E
 
     // write to the file
     description_file.write_at(content.as_bytes(), 0)?;
-    Ok(())
 
+    Ok(())
 }
