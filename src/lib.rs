@@ -1,4 +1,4 @@
-// use colored::*;
+use colored::Colorize;
 use directories::UserDirs;
 use glob::glob;
 use std::fs;
@@ -90,21 +90,16 @@ pub fn download(webadress: &String, genre_type: &str) -> Result<(), Box<dyn std:
     // creates a vector with only the newly created mp3 files
     let mut mp3_files: Vec<String> = Vec::new();
     let tmp_dir_content_after = read_dir(&format!("{}/*", &tmp_music_dir))?;
-    println!("{:?} \n next {:?}", tmp_dir_content, tmp_dir_content_after);
 
     if !tmp_dir_content.is_empty() {
         for content in tmp_dir_content_after.iter() {
-            println!("ABA{:?}, {:?}", content, content.ends_with(".mp3"));
             if !tmp_dir_content.contains(content) && content.ends_with(".mp3") {
                 mp3_files.push(content.to_string());
-                println!("Yeas {:?}", content)
             }
         }
     } else {
         for content in tmp_dir_content_after.iter() {
-            println!("{:?}, {:?}", content, content.ends_with(".mp3"));
             if content.ends_with(".mp3") {
-                println!("What {:?}", content);
                 mp3_files.push(content.to_string())
             }
         }
@@ -124,29 +119,45 @@ pub fn download(webadress: &String, genre_type: &str) -> Result<(), Box<dyn std:
         );
     };
 
-    // search for dir so sort names are possible
+    // search for dir so short names are possible. otherwise try to use the other directory
+    let genre_dir = match search_genre(genre_type.to_string()) {
+        Ok(dir) => dir,
+        Err(_) => {
+            // could this be diffrent ??
+            println!("genre_type not found");
+            let other_dir = format!("{}{}", music_dir, "/youtube/*");
+            let genre_type_dirs = read_dir(format!("{}{}", music_dir, "/youtube/*").as_str())?;
+            let genre_dir = search(other_dir.as_str(), genre_type_dirs)[0].clone();
+            if genre_dir.is_empty() {
+                println!(
+                    "There is no other directory in {}, trying to create it",
+                    other_dir
+                );
+                create_genre(
+                    &"other".to_string(),
+                    &"music that does not fit in another category".to_string(),
+                )?;
+            }
+            genre_dir
+        }
+    };
+
+    move_files(mp3_files, &genre_dir)?;
+    Ok(())
+}
+
+fn search_genre(genre: String) -> Result<String, Box<dyn std::error::Error>> {
+    let music_dir = get_dir_music()?;
     let genre_type_dirs = read_dir(format!("{}{}", music_dir, "/youtube/*").as_str())?;
 
-    let genre_dir = &search(genre_type, genre_type_dirs.clone());
+    let genre_dir = search(&genre, genre_type_dirs.clone());
 
     // Checking if the directory exists, otherwise it checks if the other directory,
     // if not it creates it
     if genre_dir.is_empty() {
-        println!("genre_type not found");
-        let other_dir = format!("{}{}", music_dir, "/youtube/*");
-        let genre_dir = &search(other_dir.as_str(), genre_type_dirs);
-        if genre_dir.is_empty() {
-            println!(
-                "Ther is no other directory in {}, trying to create it",
-                other_dir
-            );
-            fs::create_dir(&other_dir)?;
-        }
+        return Err("Not found".into());
     }
-    println!("{:?}", mp3_files);
-
-    move_files(mp3_files, &genre_dir[0])?;
-    Ok(())
+    return Ok(genre_dir[0].clone());
 }
 
 pub fn move_files(
@@ -179,48 +190,61 @@ pub fn move_files(
 
 // print details about genres
 pub fn genres(genre: &Option<String>) -> Result<(), Box<dyn std::error::Error>> {
-    let music_dir = get_dir_music()?;
-
-    let genre_dir = format!("{}{}", music_dir, "/youtube/");
-
-    let genre_dirs = read_dir(&format!("{}*", genre_dir))?;
-    println!("got IT");
-
     match genre {
         None => {
             // print all genres and their description
+            let music_dir = get_dir_music()?;
+            let genre_dir = format!("{}{}", music_dir, "/youtube/");
+            let genre_dirs = read_dir(&format!("{}*", genre_dir))?;
+
             for genre_dir in genre_dirs {
-                println!("got IT");
                 let (name, description) = genre_description::get_genre_description(&genre_dir)?;
                 println!("name: {}\ndescription: {}\n", name, description);
             }
-            Ok(())
+            return Ok(());
         }
         Some(genre) => {
-            let size = genre_dir.len();
-            for genre_type in genre_dirs {
-                let genre_type = &genre_type[(size)..];
-
-                if genre == genre_type.trim() {
-                    let genre_path = format!("{}{}/", genre_dir, genre_type);
-                    let (name, description) =
-                        genre_description::get_genre_description(&genre_path)?;
-                    let music_files = read_dir(&format!("{}*.mp3", genre_path))?;
-                    // TODO Put all this in a function, go throu all the music. Sort it on album and
-                    // remove duplicate albums, must be a structure for this
-                    let mut music_tags: Vec<MusicTag> = music_tag::get_music_tags(music_files)?;
-                    if music_tags.len() > 15 {
-                        music_tags.sort();
-                        music_tags.dedup_by(|a, b| a.album_title == b.album_title);
-                    }
-
-                    println!("name: {}\ndescription: {}", name, description);
-
+            let genre_path = match search_genre(genre.clone()) {
+                Ok(path) => path,
+                Err(_) => {
+                    println!(
+                        "could not find genre/type, don't use any arguments to print all genres"
+                    );
                     return Ok(());
                 }
+            };
+
+            let (name, description) = genre_description::get_genre_description(&genre_path)?;
+
+            let music_files = read_dir(&format!("{}/*.mp3", genre_path))?;
+            let mut music_tags: Vec<MusicTag> = music_tag::get_music_tags(music_files)?;
+
+            let big_tags: bool;
+
+            if music_tags.len() > 15 {
+                music_tags.sort_by(|a, b| a.album_title.cmp(&b.album_title));
+                music_tags.dedup_by(|a, b| a.album_title == b.album_title);
+                music_tags.sort_by(|a, b| a.artist_name.cmp(&b.artist_name));
+                big_tags = true;
+            } else {
+                music_tags.sort_by(|a, b| a.album_title.cmp(&b.album_title));
+                music_tags.sort_by(|a, b| a.artist_name.cmp(&b.artist_name));
+                big_tags = false;
             }
-            println!("could not find genre/type, don't use any arguments to print all genres");
-            Ok(())
+
+            println!("{}: {}", "Name".bold().purple(), name.bold());
+            println!("{}: {}", "Description".bold().blue(), description);
+            println!("");
+
+            for music_tag in music_tags {
+                println!("{}: {}", "Artist".bold().magenta(), music_tag.artist_name);
+                println!("{}: {}", "Album".bold().magenta(), music_tag.album_title);
+                if !big_tags {
+                    println!("{}: {}", "Song".bold().blue(), music_tag.song_title)
+                }
+                println!("");
+            }
+            return Ok(());
         }
     }
 }
