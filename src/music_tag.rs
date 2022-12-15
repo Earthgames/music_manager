@@ -39,7 +39,7 @@ pub fn get_music_tags(music_files: Vec<String>) -> Result<Vec<MusicTag>, &'stati
             println!("{} is skipped because it has no titel tag", &music_file)
         }
     }
-    return Ok(music_songs);
+    Ok(music_songs)
 }
 
 pub fn _change_album(album_titel: &str, file_path: &str) -> Result<(), Box<dyn std::error::Error>> {
