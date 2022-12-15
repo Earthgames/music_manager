@@ -76,10 +76,16 @@ pub fn download(webadress: &String, genre_type: &str) -> Result<(), Box<dyn std:
     let tmp_dir_content = read_dir(&format!("{}/*", &tmp_music_dir))?;
 
     // download from yt with yt-dlp
-    let youtube_download = Command::new("yt-dlp")
+    let youtube_download = match Command::new("yt-dlp")
         .arg(webadress)
         .current_dir(&tmp_music_dir)
-        .status()?;
+        .status(){
+            Ok(e) => e,
+            Err(err) => {
+                eprintln!("could not use yt-dlp command \n is it installed?");
+                return Err(err.into());
+            }
+        };
 
     if !youtube_download.success() {
         eprintln!("yt-dlp {}", youtube_download);
@@ -106,11 +112,17 @@ pub fn download(webadress: &String, genre_type: &str) -> Result<(), Box<dyn std:
     }
 
     // normalize mp3 files
-    let mp3_normalizer = Command::new("mp3gain")
+    let mp3_normalizer = match Command::new("mp3gain")
         .current_dir(&tmp_music_dir)
         .arg("-r")
         .args(&mp3_files)
-        .status()?;
+        .status(){
+            Ok(e) => e,
+            Err(err) => {
+                eprintln!("could not use mp3gain command \n is it installed?");
+                return Err(err.into());
+            }
+        };
 
     if !mp3_normalizer.success() {
         eprintln!(
