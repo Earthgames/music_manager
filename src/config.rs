@@ -3,16 +3,16 @@ use directories::{BaseDirs, UserDirs};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io::{ErrorKind, Result};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use toml::ser::Error;
 
 #[derive(Deserialize, Serialize)]
-pub struct Config<'a> {
-    pub music_dir: &'a Path,
-    pub default_dir: &'a Path,
+pub struct Config {
+    pub music_dir: PathBuf,
+    pub default_dir: PathBuf,
 }
 
-pub fn get_config() -> Result<Config<'static>> {
+pub fn get_config() -> Result<Config> {
     let base_dir = match BaseDirs::new() {
         Some(dir) => dir,
         None => return Err(ErrorKind::NotFound.into()),
@@ -26,8 +26,8 @@ pub fn get_config() -> Result<Config<'static>> {
             ErrorKind::NotFound => {
                 println!("Could not find config, making it");
                 fs::create_dir(&config_dir.join("music-manager"))?;
-                let music_dir = Path::new(&get_dir_music()?);
-                let default_dir = music_dir.join("/other").as_path();
+                let music_dir = Path::new(&get_dir_music()?).to_owned();
+                let default_dir = music_dir.join("/other");
                 let config = Config {
                     music_dir,
                     default_dir,

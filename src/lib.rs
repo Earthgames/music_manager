@@ -2,7 +2,7 @@ use colored::Colorize;
 use config::get_config;
 use glob::glob;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 mod config;
 mod genre_description;
@@ -128,7 +128,7 @@ pub fn download(webadress: &String, genre_type: &str) -> Result<(), Box<dyn std:
 
     // search for dir so short names are possible. otherwise try to use the other directory
     let genre_dir = match search_genre(genre_type.to_string()) {
-        Ok(dir) => Path::new(&dir),
+        Ok(dir) => Path::new(&dir).to_owned(),
         Err(_) => {
             // could this be diffrent ??
             println!("genre_type not found");
@@ -195,14 +195,14 @@ pub fn move_files(
 pub fn genres(genre: &Option<String>) -> Result<(), Box<dyn std::error::Error>> {
     if let Some(genre) = genre {
         let genre_path = match search_genre(genre.clone()) {
-            Ok(path) => Path::new(&path),
+            Ok(path) => Path::new(&path).to_owned(),
             Err(_) => {
                 println!("could not find genre/type, don't use any arguments to print all genres");
                 return Ok(());
             }
         };
 
-        let (name, description) = genre_description::get_genre_description(genre_path)?;
+        let (name, description) = genre_description::get_genre_description(genre_path.as_path())?;
 
         let music_files = read_dir(&genre_path.join("/*.mp3").as_path())?;
         let mut music_tags: Vec<MusicTag> = music_tag::get_music_tags(music_files)?;
