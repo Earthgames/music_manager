@@ -27,8 +27,9 @@ enum Commands {
     #[clap(name = "genr")]
     Genres { genre: Option<String> },
 
-    #[clap(name = "creategenr")]
-    CreateGenre {
+    /// makes a new genre directory
+    #[clap(name = "mkgenr")]
+    MakeGenre {
         genre: String,
 
         #[clap(default_value_t = String::from("default discription, please insert your own"))]
@@ -48,7 +49,6 @@ fn main() {
                         println!("could not clean temporary directory because: {}", err)
                     }
                 }
-                
             }
             Err(err) => {
                 eprintln!("there was an error: {}", err);
@@ -69,6 +69,6 @@ fn main() {
             }
         },
 
-        Commands::CreateGenre { genre, discription } => create_genre(genre, discription).unwrap(),
+        Commands::MakeGenre { genre, discription } => create_genre(genre, discription).unwrap(),
     };
 }
