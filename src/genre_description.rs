@@ -10,10 +10,8 @@ struct Description {
     description: String,
 }
 
-pub fn get_genre_description(
-    genre_path: &Path,
-) -> Result<(String, String), Box<dyn std::error::Error>> {
-    let description_path = genre_path.join("/discription.toml");
+pub fn get_genre_description(genre_path: &Path) -> std::io::Result<(String, String)> {
+    let description_path = genre_path.join("description.toml");
     let contents = fs::read_to_string(description_path)?;
     let description: Description = toml::from_str(contents.as_str())?;
 
@@ -27,7 +25,7 @@ pub fn create_genre_description(
 ) -> Result<(), Box<dyn std::error::Error>> {
     // implement Path everywhere, makes things easier
     // create path form the genre_path, for now
-    let path_str = genre_path.join("/description.toml");
+    let path_str = genre_path.join("description.toml");
     let path = Path::new(&path_str);
 
     let name = genre_name.unwrap_or("default_name");

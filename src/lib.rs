@@ -2,19 +2,25 @@ use colored::Colorize;
 use config::get_config;
 use glob::glob;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::Command;
 mod config;
 mod genre_description;
 mod music_tag;
 use music_tag::MusicTag;
 use std::fs::File;
+use std::io::ErrorKind;
 use std::os::unix::fs::FileExt;
 
 // gives a string with all the files in that match a path pattern
-pub fn read_dir(dir: &Path) -> std::io::Result<Vec<String>> {
+pub fn read_dir(dir: &Path, file_ext: Option<&str>) -> std::io::Result<Vec<String>> {
     let mut result: Vec<String> = Vec::new();
-    let dir = match dir.to_str() {
+    let search = match file_ext {
+        Some(ext) => dir.join(format!("*{}", ext)),
+        None => dir.join("*"),
+    };
+
+    let dir = match search.to_str() {
         Some(dir) => dir,
         None => return Err(std::io::ErrorKind::NotFound.into()),
     };
@@ -42,8 +48,8 @@ fn search(query: &str, content: Vec<String>) -> Vec<String> {
 // will be removed?
 pub fn clean_tmp() -> Result<(), Box<dyn std::error::Error>> {
     let music_dir = get_config()?.music_dir;
-    let tmp_music_dir = music_dir.join("/tmp/*");
-    let tmp_dir_content = read_dir(&tmp_music_dir)?;
+    let tmp_music_dir = music_dir.join("tmp/*");
+    let tmp_dir_content = read_dir(&tmp_music_dir, None)?;
 
     for file in tmp_dir_content {
         fs::remove_file(file)?;
@@ -56,7 +62,7 @@ pub fn download(webadress: &String, genre_type: &str) -> Result<(), Box<dyn std:
     let config = get_config()?;
     let music_dir = config.music_dir;
 
-    let tmp_music_dir = music_dir.join("/tmp/");
+    let tmp_music_dir = music_dir.join("tmp/");
 
     // checks if de temporary directory exists, makes it if it does not
     if !Path::new(&tmp_music_dir).is_dir() {
@@ -67,7 +73,7 @@ pub fn download(webadress: &String, genre_type: &str) -> Result<(), Box<dyn std:
         fs::create_dir(&tmp_music_dir)?
     }
 
-    let tmp_dir_content = read_dir(&tmp_music_dir.join("*"))?;
+    let tmp_dir_content = read_dir(&tmp_music_dir, None)?;
 
     // download from yt with yt-dlp
     let youtube_download = match Command::new("yt-dlp")
@@ -90,7 +96,7 @@ pub fn download(webadress: &String, genre_type: &str) -> Result<(), Box<dyn std:
 
     // creates a vector with only the newly created mp3 files
     let mut mp3_files: Vec<String> = Vec::new();
-    let tmp_dir_content_after = read_dir(&tmp_music_dir.join("*"))?;
+    let tmp_dir_content_after = read_dir(&tmp_music_dir, None)?;
     if !tmp_dir_content.is_empty() {
         for content in tmp_dir_content_after.iter() {
             if !tmp_dir_content.contains(content) && content.ends_with(".mp3") {
@@ -151,7 +157,7 @@ fn search_genre(genre: String) -> Result<String, std::io::Error> {
     let config = get_config()?;
     let music_dir = config.music_dir;
 
-    let genre_type_dirs = read_dir(&music_dir)?;
+    let genre_type_dirs = read_dir(&music_dir, None)?;
 
     let genre_dir = search(&genre, genre_type_dirs);
 
@@ -204,7 +210,7 @@ pub fn genres(genre: &Option<String>) -> Result<(), Box<dyn std::error::Error>> 
 
         let (name, description) = genre_description::get_genre_description(genre_path.as_path())?;
 
-        let music_files = read_dir(&genre_path.join("/*.mp3").as_path())?;
+        let music_files = read_dir(&genre_path.as_path(), Some(".mp3"))?;
         let mut music_tags: Vec<MusicTag> = music_tag::get_music_tags(music_files)?;
 
         let big_tags: bool = if music_tags.len() > 15 {
@@ -230,18 +236,31 @@ pub fn genres(genre: &Option<String>) -> Result<(), Box<dyn std::error::Error>> 
             }
             println!();
         }
+        //TODO add empty check
         Ok(())
     } else {
         // print all genres and their description
         let music_dir = get_config()?.music_dir;
-        let genre_dir = music_dir;
-        let genre_dirs = read_dir(genre_dir.join("/*").as_path())?;
+        let genre_dirs = read_dir(music_dir.as_path(), None)?;
 
         for genre_dir in genre_dirs {
             let (name, description) =
-                genre_description::get_genre_description(&Path::new(&genre_dir))?;
+                match genre_description::get_genre_description(&Path::new(&genre_dir)) {
+                    Ok(cont) => cont,
+                    Err(err) => {
+                        match err.kind() {
+                            ErrorKind::NotFound => println!(
+                                "could not find description for folder {}, skipping",
+                                genre_dir
+                            ),
+                            _ => println!("skipping because of error"),
+                        }
+                        continue;
+                    }
+                };
             println!("{}: {}", "Name".bold().purple(), name.bold());
             println!("{}: {}", "Description".bold().blue(), description);
+            println!();
         }
         Ok(())
     }

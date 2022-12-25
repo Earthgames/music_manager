@@ -27,7 +27,7 @@ pub fn get_config() -> Result<Config> {
                 println!("Could not find config, making it");
                 fs::create_dir(&config_dir.join("music-manager"))?;
                 let music_dir = Path::new(&get_dir_music()?).to_owned();
-                let default_dir = music_dir.join("/other");
+                let default_dir = music_dir.join("other");
                 let config = Config {
                     music_dir,
                     default_dir,
