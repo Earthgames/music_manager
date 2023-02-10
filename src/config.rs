@@ -25,7 +25,7 @@ pub fn get_config() -> Result<Config> {
         Err(err) => match err.kind() {
             ErrorKind::NotFound => {
                 println!("Could not find config, making it");
-                fs::create_dir(&config_dir.join("music-manager"))?;
+                fs::create_dir(config_dir.join("music-manager"))?;
                 let music_dir = Path::new(&get_dir_music()?).to_owned();
                 let default_dir = music_dir.join("other");
                 let config = Config {
@@ -35,7 +35,7 @@ pub fn get_config() -> Result<Config> {
                 mk_config(&config, config_path.as_path())?;
                 return Ok(config);
             }
-            _ => return Err(err.into()),
+            _ => return Err(err),
         },
     };
 
@@ -51,7 +51,7 @@ fn mk_config(config: &Config, config_path: &Path) -> Result<()> {
         },
     };
 
-    Ok(create_file(config_path, content)?)
+    create_file(config_path, content)
 }
 
 fn get_dir_music() -> Result<String> {

@@ -46,15 +46,15 @@ fn main() {
             Ok(_t) => {
                 if cli.clean {
                     if let Err(err) = clean_tmp() {
-                        println!("could not clean temporary directory because: {}", err)
+                        println!("could not clean temporary directory because: {err}")
                     }
                 }
             }
             Err(err) => {
-                eprintln!("there was an error: {}", err);
+                eprintln!("there was an error: {err}");
                 if cli.clean {
                     if let Err(err) = clean_tmp() {
-                        println!("could not clean temporary directory because: {}", err)
+                        println!("could not clean temporary directory because: {err}")
                     }
                 }
                 process::exit(1);
@@ -64,11 +64,18 @@ fn main() {
         Commands::Genres { genre } => match genres(genre) {
             Ok(_t) => (),
             Err(err) => {
-                eprintln!("there was an error: {}", err);
+                eprintln!("there was an error: {err}");
                 process::exit(1);
             }
         },
 
-        Commands::MakeGenre { genre, discription } => create_genre(genre, discription).unwrap(),
+        Commands::MakeGenre { genre, discription } => match create_genre(genre, discription){
+            Ok(_t) => (),
+            Err(err) => {
+                eprintln!("there was an error: {err}");
+                process::exit(1);
+            }
+
+        },
     };
 }

@@ -16,7 +16,7 @@ use std::os::unix::fs::FileExt;
 pub fn read_dir(dir: &Path, file_ext: Option<&str>) -> std::io::Result<Vec<String>> {
     let mut result: Vec<String> = Vec::new();
     let search = match file_ext {
-        Some(ext) => dir.join(format!("*{}", ext)),
+        Some(ext) => dir.join(format!("*{ext}")),
         None => dir.join("*"),
     };
 
@@ -89,7 +89,7 @@ pub fn download(webadress: &String, genre_type: &str) -> Result<(), Box<dyn std:
     };
 
     if !youtube_download.success() {
-        eprintln!("yt-dlp {}", youtube_download);
+        eprintln!("yt-dlp {youtube_download}");
         println!("Failed to download with yt-dlp");
         return Ok(());
     };
@@ -127,8 +127,7 @@ pub fn download(webadress: &String, genre_type: &str) -> Result<(), Box<dyn std:
 
     if !mp3_normalizer.success() {
         eprintln!(
-            "mp3gain {}\nFailed to normalize audio with mp3gain, please do it yourself",
-            mp3_normalizer
+            "mp3gain {mp3_normalizer}\nFailed to normalize audio with mp3gain, please do it yourself"
         );
     };
 
@@ -147,7 +146,7 @@ pub fn download(webadress: &String, genre_type: &str) -> Result<(), Box<dyn std:
         }
     };
 
-    move_files(mp3_files, &genre_dir.to_str().unwrap())?;
+    move_files(mp3_files, genre_dir.to_str().unwrap())?;
     Ok(())
 }
 
@@ -181,13 +180,12 @@ pub fn move_files(
             },
             None => continue,
         };
-        fs::copy(&file, format!("{}/{}", target_dir, file_name))?;
+        fs::copy(&file, format!("{target_dir}/{file_name}"))?;
         match fs::remove_file(&file) {
-            Ok(_) => println!("moved {} to {}", file, target_dir),
+            Ok(_) => println!("moved {file} to {target_dir}"),
             Err(e) => {
                 println!(
-                    "copied {} to {}, could not remove the original",
-                    file, target_dir
+                    "copied {file} to {target_dir}, could not remove the original"
                 );
 
                 return Err(Box::new(e));
@@ -210,7 +208,7 @@ pub fn genres(genre: &Option<String>) -> Result<(), Box<dyn std::error::Error>> 
 
         let (name, description) = genre_description::get_genre_description(genre_path.as_path())?;
 
-        let music_files = read_dir(&genre_path.as_path(), Some(".mp3"))?;
+        let music_files = read_dir(genre_path.as_path(), Some(".mp3"))?;
         let mut music_tags: Vec<MusicTag> = music_tag::get_music_tags(music_files)?;
 
         let big_tags: bool = if music_tags.len() > 15 {
@@ -249,15 +247,14 @@ pub fn genres(genre: &Option<String>) -> Result<(), Box<dyn std::error::Error>> 
 
         for genre_dir in genre_dirs {
             let (name, description) =
-                match genre_description::get_genre_description(&Path::new(&genre_dir)) {
+                match genre_description::get_genre_description(Path::new(&genre_dir)) {
                     Ok(cont) => cont,
                     Err(err) => {
                         match err.kind() {
                             ErrorKind::NotFound => println!(
-                                "could not find description for folder {}, skipping",
-                                genre_dir
+                                "could not find description for folder {genre_dir}, skipping"
                             ),
-                            _ => println!("skipping because of error"),
+                            _ => println!("skipping {genre_dir} because of error: {err}"),
                         }
                         continue;
                     }
@@ -277,13 +274,20 @@ pub fn create_genre(
     let config = get_config()?;
     let music_dir = config.music_dir;
 
-    let genre_dir = music_dir.join(&genre_name);
+    let genre_dir = music_dir.join(genre_name);
 
     // checks if de genre directory already exists, makes it if it does not
-    if genre_dir.is_dir() {
-        fs::create_dir(&genre_dir)?;
-        println!("made genre directory {}", &genre_dir.display());
+    if !genre_dir.is_dir() {
+        match fs::create_dir(&genre_dir){
+            Ok(_t) => println!("made genre directory {}", &genre_dir.display()),
+               
+            Err(err) => {
+                eprintln!("Could not make genre directory");
+                return Err(err.into())    
+        },
+        }  
     }
+
     genre_description::create_genre_description(
         &genre_dir,
         Some(genre_name),
