@@ -228,6 +228,11 @@ pub fn genres(genre: &Option<String>) -> Result<(), Box<dyn std::error::Error>> 
         println!("{}: {}", "Description".bold().blue(), description);
         println!();
 
+        if music_tags.is_empty() {
+            println!("{}", "No music found".red().bold());
+            return Ok(());
+        }
+
         for music_tag in music_tags {
             println!("{}: {}", "Artist".bold().magenta(), music_tag.artist_name);
             println!("{}: {}", "Album".bold().magenta(), music_tag.album_title);
@@ -236,7 +241,6 @@ pub fn genres(genre: &Option<String>) -> Result<(), Box<dyn std::error::Error>> 
             }
             println!();
         }
-        //TODO add empty check
         Ok(())
     } else {
         // print all genres and their description
