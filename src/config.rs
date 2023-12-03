@@ -17,7 +17,7 @@ pub fn get_config() -> Result<Config> {
         None => return Err(ErrorKind::NotFound.into()),
     };
     let config_dir = BaseDirs::config_dir(&base_dir);
-    let config_path = config_dir.join("music-manager/config.toml");
+    let config_path = config_dir.join("music_manager/config.toml");
     // get content or create new content
     let config: Config = match fs::read_to_string(&config_path) {
         Ok(cont) => match toml::from_str(cont.as_str()) {
@@ -27,7 +27,7 @@ pub fn get_config() -> Result<Config> {
         Err(err) => match err.kind() {
             ErrorKind::NotFound => {
                 println!("Could not find config, making it");
-                fs::create_dir(config_dir.join("music-manager"))?;
+                fs::create_dir(config_dir.join("music_manager"))?;
                 let music_dir = Path::new(&get_dir_music()?).to_owned();
                 let default_dir = music_dir.join("other");
                 let config = Config {

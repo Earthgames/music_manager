@@ -23,7 +23,7 @@ enum Commands {
         #[clap(default_value_t = String::from("other"))]
         genre: String,
     },
-    /// print genres with a discription
+    /// print genres with a description
     #[clap(name = "genr")]
     Genres { genre: Option<String> },
 
@@ -32,8 +32,8 @@ enum Commands {
     MakeGenre {
         genre: String,
 
-        #[clap(default_value_t = String::from("default discription, please insert your own"))]
-        discription: String,
+        #[clap(default_value_t = String::from("default description, please insert your own"))]
+        description: String,
     },
 }
 
@@ -41,7 +41,7 @@ fn main() {
     let cli = Cli::parse();
 
     match &cli.command {
-        // download youtube music and move in a genre directo
+        // download youtube music and move in a genre directory
         Commands::Download { url, genre } => match download(url, genre) {
             Ok(_t) => {
                 if cli.clean {
@@ -69,13 +69,12 @@ fn main() {
             }
         },
 
-        Commands::MakeGenre { genre, discription } => match create_genre(genre, discription){
+        Commands::MakeGenre { genre, description } => match create_genre(genre, description) {
             Ok(_t) => (),
             Err(err) => {
                 eprintln!("there was an error: {err}");
                 process::exit(1);
             }
-
         },
     };
 }
