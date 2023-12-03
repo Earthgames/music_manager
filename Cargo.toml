@@ -7,10 +7,10 @@ edition = "2021"
 # made by me
 
 [dependencies]
-directories = "4.0" # to get the user directories
+directories = "5.0" # to get the user directories
 glob = "0.3" # to read directories
-id3 = "1.2" # to read and manipulate mp3 files
+lofty = "0.17" # read tags and manipulate all music tags
 clap = { version = "4.0", features = ["derive"] } # command line interface
 colored = "2.0" # color output and bold and other cool output for terminal
 serde = { version = "1.0", features = ["derive"] }# serializing and deserializing
-toml = "0.5" # toml format
+toml = "0.8" # toml format
