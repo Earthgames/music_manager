@@ -20,7 +20,6 @@ Options:
   -c, --clean    Clean tmp directory on exit
   -h, --help     Print help
   -V, --version  Print version
-
 ```
 
 ## How to install
@@ -51,6 +50,7 @@ tmp_dir, the directory where the music is downloaded in
 
 An example  of a folder structure. Note that the tmp folder does not have to be in the root directory
 
+```text
 .
 ├── bgm
 │   └── description.toml
@@ -63,6 +63,7 @@ An example  of a folder structure. Note that the tmp folder does not have to be 
 ├── soul
 │   └── description.toml
 └── tmp
+```
 
 A description.toml should be in every folder that can be used by the Music Manager
 the description has the following fields
