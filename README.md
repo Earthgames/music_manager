@@ -5,7 +5,6 @@ A cli to manage music
 ## How to use
 
 ```text
-
 Usage: music_manager [OPTIONS] `<COMMAND>`
 
 Commands:
