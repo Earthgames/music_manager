@@ -1,5 +1,4 @@
 # Music Manager
-test
 
 A cli to manage music
 
