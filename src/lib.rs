@@ -81,7 +81,7 @@ pub fn download(webadress: &String, genre_type: &str) -> Result<(), Box<dyn std:
             "--extract-audio",
             "-f",
             "bestaudio",
-            "-audio-format",
+            "--audio-format",
             "opus",
             "--split-chapters",
         ])
