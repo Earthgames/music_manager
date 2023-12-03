@@ -1,6 +1,7 @@
 use crate::create_file;
 use serde::{Deserialize, Serialize};
 use std::fs;
+use std::io::Error;
 use std::path::Path;
 
 // type to get the discription
@@ -13,7 +14,10 @@ struct Description {
 pub fn get_genre_description(genre_path: &Path) -> std::io::Result<(String, String)> {
     let description_path = genre_path.join("description.toml");
     let contents = fs::read_to_string(description_path)?;
-    let description: Description = toml::from_str(contents.as_str())?;
+    let description: Description = match toml::from_str(contents.as_str()) {
+        Ok(dis) => dis,
+        Err(err) => return Err(Error::new(std::io::ErrorKind::Other, err)),
+    };
 
     Ok((description.name, description.description))
 }

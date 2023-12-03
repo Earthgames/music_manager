@@ -77,6 +77,14 @@ pub fn download(webadress: &String, genre_type: &str) -> Result<(), Box<dyn std:
 
     // download from yt with yt-dlp
     let youtube_download = match Command::new("yt-dlp")
+        .args([
+            "--extract-audio",
+            "-f",
+            "bestaudio",
+            "-audio-format",
+            "opus",
+            "--split-chapters",
+        ])
         .arg(webadress)
         .current_dir(&tmp_music_dir)
         .status()
@@ -89,45 +97,46 @@ pub fn download(webadress: &String, genre_type: &str) -> Result<(), Box<dyn std:
     };
 
     if !youtube_download.success() {
-        eprintln!("yt-dlp {youtube_download}");
+        eprintln!("yt-dlp {}", youtube_download);
         println!("Failed to download with yt-dlp");
         return Ok(());
     };
 
-    // creates a vector with only the newly created mp3 files
-    let mut mp3_files: Vec<String> = Vec::new();
+    // creates a vector with only the newly created opus files
+    let mut opus_files: Vec<String> = Vec::new();
     let tmp_dir_content_after = read_dir(&tmp_music_dir, None)?;
     if !tmp_dir_content.is_empty() {
         for content in tmp_dir_content_after.iter() {
-            if !tmp_dir_content.contains(content) && content.ends_with(".mp3") {
-                mp3_files.push(content.to_string());
+            if !tmp_dir_content.contains(content) && content.ends_with(".opus") {
+                opus_files.push(content.to_string());
             }
         }
     } else {
         for content in tmp_dir_content_after.iter() {
-            if content.ends_with(".mp3") {
-                mp3_files.push(content.to_string())
+            if content.ends_with(".opus") {
+                opus_files.push(content.to_string())
             }
         }
     }
 
-    // normalize mp3 files
-    let mp3_normalizer = match Command::new("mp3gain")
+    // normalize opus files
+    let opus_normalizer = match Command::new("loudgain")
         .current_dir(&tmp_music_dir)
         .arg("-r")
-        .args(&mp3_files)
+        .args(&opus_files)
         .status()
     {
         Ok(e) => e,
         Err(err) => {
-            eprintln!("could not use mp3gain command \n is it installed?");
+            eprintln!("could not use loudgain command \n is it installed?");
             return Err(err.into());
         }
     };
 
-    if !mp3_normalizer.success() {
+    if !opus_normalizer.success() {
         eprintln!(
-            "mp3gain {mp3_normalizer}\nFailed to normalize audio with mp3gain, please do it yourself"
+            "opusgain {}\nFailed to normalize audio with opusgain, please do it yourself",
+            opus_normalizer
         );
     };
 
@@ -146,11 +155,10 @@ pub fn download(webadress: &String, genre_type: &str) -> Result<(), Box<dyn std:
         }
     };
 
-    move_files(mp3_files, genre_dir.to_str().unwrap())?;
+    move_files(opus_files, genre_dir.to_str().unwrap())?;
     Ok(())
 }
 
-// TODO look if it really does have to use clone
 fn search_genre(genre: String) -> Result<String, std::io::Error> {
     // get config
     let config = get_config()?;
@@ -165,7 +173,7 @@ fn search_genre(genre: String) -> Result<String, std::io::Error> {
     if genre_dir.is_empty() {
         return Err(std::io::ErrorKind::NotFound.into());
     }
-    Ok(genre_dir[0].clone())
+    Ok(genre_dir[0].to_string())
 }
 
 pub fn move_files(
@@ -185,7 +193,8 @@ pub fn move_files(
             Ok(_) => println!("moved {file} to {target_dir}"),
             Err(e) => {
                 println!(
-                    "copied {file} to {target_dir}, could not remove the original"
+                    "copied {} to {}, could not remove the original",
+                    file, target_dir
                 );
 
                 return Err(Box::new(e));
@@ -232,10 +241,10 @@ pub fn genres(genre: &Option<String>) -> Result<(), Box<dyn std::error::Error>> 
         }
 
         for music_tag in music_tags {
-            println!("{}: {}", "Artist".bold().magenta(), music_tag.artist_name);
-            println!("{}: {}", "Album".bold().magenta(), music_tag.album_title);
+            println!("{}: {}", "Artist".bold().purple(), music_tag.artist_name);
+            println!("{}: {}", "Album".bold().blue(), music_tag.album_title);
             if !big_tags {
-                println!("{}: {}", "Song".bold().blue(), music_tag.song_title)
+                println!("{}: {}", "Song".bold().green(), music_tag.song_title)
             }
             println!();
         }
@@ -278,14 +287,14 @@ pub fn create_genre(
 
     // checks if de genre directory already exists, makes it if it does not
     if !genre_dir.is_dir() {
-        match fs::create_dir(&genre_dir){
+        match fs::create_dir(&genre_dir) {
             Ok(_t) => println!("made genre directory {}", &genre_dir.display()),
-               
+
             Err(err) => {
                 eprintln!("Could not make genre directory");
-                return Err(err.into())    
-        },
-        }  
+                return Err(err.into());
+            }
+        }
     }
 
     genre_description::create_genre_description(

@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io::{ErrorKind, Result};
 use std::path::{Path, PathBuf};
-use toml::ser::Error;
 
 #[derive(Deserialize, Serialize)]
 pub struct Config {
@@ -21,7 +20,10 @@ pub fn get_config() -> Result<Config> {
     let config_path = config_dir.join("music-manager/config.toml");
     // get content or create new content
     let config: Config = match fs::read_to_string(&config_path) {
-        Ok(cont) => toml::from_str(cont.as_str())?,
+        Ok(cont) => match toml::from_str(cont.as_str()) {
+            Ok(cont) => cont,
+            Err(err) => return Err(std::io::Error::new(std::io::ErrorKind::Other, err)),
+        },
         Err(err) => match err.kind() {
             ErrorKind::NotFound => {
                 println!("Could not find config, making it");
@@ -45,10 +47,7 @@ pub fn get_config() -> Result<Config> {
 fn mk_config(config: &Config, config_path: &Path) -> Result<()> {
     let content = match toml::to_string(&config) {
         Ok(cont) => cont,
-        Err(err) => match err {
-            Error::UnsupportedType => return Err(ErrorKind::InvalidInput.into()),
-            _ => return Err(ErrorKind::InvalidData.into()),
-        },
+        Err(err) => return Err(std::io::Error::new(std::io::ErrorKind::Other, err)),
     };
 
     create_file(config_path, content)
