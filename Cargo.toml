@@ -16,3 +16,5 @@ serde = { version = "1.0", features = [
     "derive",
 ] } # serializing and deserializing
 toml = "0.8" # toml format
+simplelog = "0.12" # logging
+log = "0.4" # logging

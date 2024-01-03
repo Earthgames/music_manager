@@ -1,5 +1,6 @@
 use clap::{Parser, Subcommand};
-use music_manager::{clean_tmp, create_genre, download, genres};
+use log::{self, error};
+use simplelog::{LevelFilter, TermLogger};
 use std::process;
 
 #[derive(Parser)]
@@ -9,6 +10,15 @@ struct Cli {
     /// Clean tmp directory on exit
     #[clap(short, long)]
     clean: bool,
+
+    /// log level:
+    /// 0 silent,
+    /// 1 errors,
+    /// 2 warnings,
+    /// 3 info,
+    #[clap(short, long)]
+    #[clap(default_value_t = 3)]
+    loglevel: u8,
 
     #[clap(subcommand)]
     command: Commands,
@@ -39,6 +49,19 @@ enum Commands {
 
 fn main() {
     let cli = Cli::parse();
+    TermLogger::init(
+        match cli.loglevel {
+            0 => LevelFilter::Off,
+            1 => LevelFilter::Error,
+            2 => LevelFilter::Warn,
+            3 => LevelFilter::Info,
+            _ => LevelFilter::Trace,
+        },
+        simplelog::Config::default(),
+        simplelog::TerminalMode::Stdout,
+        simplelog::ColorChoice::Auto,
+    )
+    .unwrap();
 
     match &cli.command {
         // download youtube music and move in a genre directory
