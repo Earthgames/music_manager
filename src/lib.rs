@@ -1,6 +1,7 @@
 use colored::Colorize;
 use config::get_config;
 use glob::glob;
+use log::error;
 use std::fs;
 use std::path::Path;
 use std::process::Command;
@@ -11,6 +12,7 @@ use music_tag::MusicTag;
 use std::fs::File;
 use std::io::ErrorKind;
 use std::os::unix::fs::FileExt;
+use std::process;
 
 // gives a string with all the files in that match a path pattern
 pub fn read_dir(dir: &Path, file_ext: Option<&str>) -> std::io::Result<Vec<String>> {
@@ -46,15 +48,32 @@ fn search(query: &str, content: Vec<String>) -> Vec<String> {
 }
 
 // will be removed?
-pub fn clean_tmp() -> Result<(), Box<dyn std::error::Error>> {
-    let music_dir = get_config()?.music_dir;
+pub fn clean_tmp() {
+    let music_dir = match get_config() {
+        Ok(dirs) => dirs,
+        Err(err) => {
+            error!("{err}");
+            process::exit(1);
+        }
+    }
+    .music_dir;
+
     let tmp_music_dir = music_dir.join("tmp/*");
-    let tmp_dir_content = read_dir(&tmp_music_dir, None)?;
+
+    let tmp_dir_content = match read_dir(&tmp_music_dir, None) {
+        Ok(dirs) => dirs,
+        Err(err) => {
+            error!("{err}");
+            process::exit(1);
+        }
+    };
 
     for file in tmp_dir_content {
-        fs::remove_file(file)?;
+        match fs::remove_file(file) {
+            Ok(_) => {}
+            Err(_) => {}
+        };
     }
-    Ok(())
 }
 
 pub fn download(webadress: &String, genre_type: &str) -> Result<(), Box<dyn std::error::Error>> {

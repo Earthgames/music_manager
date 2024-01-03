@@ -1,5 +1,6 @@
 use clap::{Parser, Subcommand};
 use log::{self, error};
+use music_manager::*;
 use simplelog::{LevelFilter, TermLogger};
 use std::process;
 
@@ -55,6 +56,7 @@ fn main() {
             1 => LevelFilter::Error,
             2 => LevelFilter::Warn,
             3 => LevelFilter::Info,
+            4 => LevelFilter::Debug,
             _ => LevelFilter::Trace,
         },
         simplelog::Config::default(),
@@ -68,34 +70,31 @@ fn main() {
         Commands::Download { url, genre } => match download(url, genre) {
             Ok(_t) => {
                 if cli.clean {
-                    if let Err(err) = clean_tmp() {
-                        println!("could not clean temporary directory because: {err}")
-                    }
+                    clean_tmp()
                 }
+                process::exit(0);
             }
             Err(err) => {
-                eprintln!("there was an error: {err}");
+                error!("{err}");
                 if cli.clean {
-                    if let Err(err) = clean_tmp() {
-                        println!("could not clean temporary directory because: {err}")
-                    }
+                    clean_tmp()
                 }
                 process::exit(1);
             }
         },
-        //print all genres with a discription
+        // print all genres with a description
         Commands::Genres { genre } => match genres(genre) {
-            Ok(_t) => (),
+            Ok(_t) => process::exit(0),
             Err(err) => {
-                eprintln!("there was an error: {err}");
+                error!("{err}");
                 process::exit(1);
             }
         },
 
         Commands::MakeGenre { genre, description } => match create_genre(genre, description) {
-            Ok(_t) => (),
+            Ok(_t) => process::exit(0),
             Err(err) => {
-                eprintln!("there was an error: {err}");
+                error!("{err}");
                 process::exit(1);
             }
         },
