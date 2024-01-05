@@ -1,11 +1,7 @@
 use crate::{config, genre_description, music_tag, Result};
 use colored::Colorize;
-use log::error;
-use log::info;
-use log::warn;
-use std::fs;
-use std::io::ErrorKind;
-use std::path::Path;
+use log::{error, info, warn};
+use std::{fs, io::ErrorKind, path::Path};
 
 /// Print details about genres
 pub fn genres(genre: &Option<String>) -> Result<()> {

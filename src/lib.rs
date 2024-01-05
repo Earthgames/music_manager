@@ -3,9 +3,7 @@ pub mod config;
 pub mod genre_description;
 pub mod music_tag;
 
-use std::fs::File;
-use std::os::unix::fs::FileExt;
-use std::path::Path;
+use std::{fs::File, os::unix::fs::FileExt, path::Path};
 
 pub fn create_file(path: &Path, content: String) -> Result<()> {
     // create a file

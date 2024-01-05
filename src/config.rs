@@ -1,11 +1,12 @@
-use crate::create_file;
-use crate::Result;
+use crate::{create_file, Result};
 use directories::{BaseDirs, UserDirs};
 use log::info;
 use serde::{Deserialize, Serialize};
-use std::fs;
-use std::io::ErrorKind;
-use std::path::{Path, PathBuf};
+use std::{
+    fs,
+    io::ErrorKind,
+    path::{Path, PathBuf},
+};
 
 #[derive(Deserialize, Serialize)]
 pub struct Config {

@@ -1,9 +1,7 @@
 use crate::create_file;
 use crate::Result;
 use serde::{Deserialize, Serialize};
-use std::fs;
-use std::io::Error;
-use std::path::Path;
+use std::{fs, io::Error, path::Path};
 
 // type to get the discription
 #[derive(Deserialize, Serialize)]

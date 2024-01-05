@@ -1,12 +1,7 @@
-use crate::config;
-use crate::genre_description;
-use crate::Result;
+use crate::{config, genre_description, Result};
 use glob::glob;
 use log::{error, info, warn};
-use std::fs;
-use std::io::ErrorKind;
-use std::path::Path;
-use std::process;
+use std::{fs, io::ErrorKind, path::Path, process};
 pub mod download;
 pub mod genre;
 
