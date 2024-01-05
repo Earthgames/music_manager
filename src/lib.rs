@@ -1,21 +1,17 @@
 use colored::Colorize;
-use config::get_config;
 use glob::glob;
-use log::error;
+use log::{error, info, warn};
 use std::fs;
-use std::path::Path;
-use std::process::Command;
-mod config;
-mod genre_description;
-mod music_tag;
-use music_tag::MusicTag;
-use std::fs::File;
 use std::io::ErrorKind;
-use std::os::unix::fs::FileExt;
+use std::path::Path;
 use std::process;
+use std::process::Command;
+pub mod config;
+pub mod genre_description;
+pub mod music_tag;
 
 // gives a string with all the files in that match a path pattern
-pub fn read_dir(dir: &Path, file_ext: Option<&str>) -> std::io::Result<Vec<String>> {
+pub fn read_dir(dir: &Path, file_ext: Option<&str>) -> Result<Vec<String>> {
     let mut result: Vec<String> = Vec::new();
     let search = match file_ext {
         Some(ext) => dir.join(format!("*{ext}")),
@@ -24,12 +20,20 @@ pub fn read_dir(dir: &Path, file_ext: Option<&str>) -> std::io::Result<Vec<Strin
 
     let dir = match search.to_str() {
         Some(dir) => dir,
-        None => return Err(std::io::ErrorKind::NotFound.into()),
+        None => {
+            return Err(Box::new(std::io::Error::new(
+                ErrorKind::NotFound,
+                "Could not find directory",
+            )))
+        }
     };
-    for entry in glob(dir).expect("Failed to read glob pattern") {
+    for entry in match glob(dir) {
+        Ok(paths) => paths,
+        Err(err) => return Err(Box::new(err)),
+    } {
         match entry {
             Ok(entry) => result.push(entry.display().to_string()),
-            Err(err) => return Err(err.into_error()),
+            Err(err) => return Err(Box::new(err)),
         }
     }
     Ok(result)
@@ -49,7 +53,7 @@ fn search(query: &str, content: Vec<String>) -> Vec<String> {
 
 // will be removed?
 pub fn clean_tmp() {
-    let music_dir = match get_config() {
+    let music_dir = match config::get_config() {
         Ok(dirs) => dirs,
         Err(err) => {
             error!("{err}");
@@ -76,16 +80,16 @@ pub fn clean_tmp() {
     }
 }
 
-pub fn download(webadress: &String, genre_type: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub fn download(webadress: &String, genre_type: &str) -> Result<()> {
     // get user config directory
-    let config = get_config()?;
+    let config = config::get_config()?;
     let music_dir = config.music_dir;
 
     let tmp_music_dir = music_dir.join("tmp/");
 
     // checks if de temporary directory exists, makes it if it does not
     if !Path::new(&tmp_music_dir).is_dir() {
-        println!(
+        info!(
             "there is no temporary directory in {}, trying to make it",
             &tmp_music_dir.display()
         );
@@ -95,7 +99,7 @@ pub fn download(webadress: &String, genre_type: &str) -> Result<(), Box<dyn std:
     let tmp_dir_content = read_dir(&tmp_music_dir, None)?;
 
     // download from yt with yt-dlp
-    let youtube_download = match Command::new("yt-dlp")
+    let downloader = match Command::new("yt-dlp")
         .args([
             "--extract-audio",
             "-f",
@@ -110,15 +114,17 @@ pub fn download(webadress: &String, genre_type: &str) -> Result<(), Box<dyn std:
     {
         Ok(e) => e,
         Err(err) => {
-            eprintln!("could not use yt-dlp command \n is it installed?");
+            error!("Could not use yt-dlp command \n is it installed?");
             return Err(err.into());
         }
     };
 
-    if !youtube_download.success() {
-        eprintln!("yt-dlp {}", youtube_download);
-        println!("Failed to download with yt-dlp");
-        return Ok(());
+    if !downloader.success() {
+        error!("yt-dlp {}", downloader);
+        return Err(Box::new(std::io::Error::new(
+            ErrorKind::Other,
+            "Failed to download with yt-dlp",
+        )));
     };
 
     // creates a vector with only the newly created opus files
@@ -139,7 +145,7 @@ pub fn download(webadress: &String, genre_type: &str) -> Result<(), Box<dyn std:
     }
 
     // normalize opus files
-    let opus_normalizer = match Command::new("loudgain")
+    let normalizer = match Command::new("loudgain")
         .current_dir(&tmp_music_dir)
         .arg("-r")
         .args(&opus_files)
@@ -147,15 +153,15 @@ pub fn download(webadress: &String, genre_type: &str) -> Result<(), Box<dyn std:
     {
         Ok(e) => e,
         Err(err) => {
-            eprintln!("could not use loudgain command \n is it installed?");
+            error!("Could not use loudgain command \n is it installed?");
             return Err(err.into());
         }
     };
 
-    if !opus_normalizer.success() {
-        eprintln!(
-            "opusgain {}\nFailed to normalize audio with opusgain, please do it yourself",
-            opus_normalizer
+    if !normalizer.success() {
+        error!(
+            "loudgain {}\nFailed to normalize audio with loudgain, please do it yourself",
+            normalizer
         );
     };
 
@@ -163,11 +169,11 @@ pub fn download(webadress: &String, genre_type: &str) -> Result<(), Box<dyn std:
     let genre_dir = match search_genre(genre_type.to_string()) {
         Ok(dir) => Path::new(&dir).to_owned(),
         Err(_) => {
-            // could this be diffrent ??
-            println!("genre_type not found");
+            // could this be different ??
+            info!("genre_type not found");
             let default_dir = config.default_dir;
             if !Path::new(&default_dir).is_dir() {
-                println!("The default_dir is not in {}", default_dir.display());
+                warn!("The default_dir is not in {}", default_dir.display());
                 return Ok(());
             }
             default_dir
@@ -178,9 +184,9 @@ pub fn download(webadress: &String, genre_type: &str) -> Result<(), Box<dyn std:
     Ok(())
 }
 
-fn search_genre(genre: String) -> Result<String, std::io::Error> {
+fn search_genre(genre: String) -> Result<String> {
     // get config
-    let config = get_config()?;
+    let config = config::get_config()?;
     let music_dir = config.music_dir;
 
     let genre_type_dirs = read_dir(&music_dir, None)?;
@@ -190,8 +196,12 @@ fn search_genre(genre: String) -> Result<String, std::io::Error> {
     // Checking if the directory exists, otherwise it checks if the other directory,
     // if not it creates it
     if genre_dir.is_empty() {
-        return Err(std::io::ErrorKind::NotFound.into());
+        return Err(Box::new(std::io::Error::new(
+            std::io::ErrorKind::NotFound,
+            "No directory found",
+        )));
     }
+
     Ok(genre_dir[0].to_string())
 }
 
@@ -209,9 +219,9 @@ pub fn move_files(
         };
         fs::copy(&file, format!("{target_dir}/{file_name}"))?;
         match fs::remove_file(&file) {
-            Ok(_) => println!("moved {file} to {target_dir}"),
+            Ok(_) => info!("moved {file} to {target_dir}"),
             Err(e) => {
-                println!(
+                warn!(
                     "copied {} to {}, could not remove the original",
                     file, target_dir
                 );
@@ -224,12 +234,12 @@ pub fn move_files(
 }
 
 // print details about genres
-pub fn genres(genre: &Option<String>) -> Result<(), Box<dyn std::error::Error>> {
+pub fn genres(genre: &Option<String>) -> Result<()> {
     if let Some(genre) = genre {
         let genre_path = match search_genre(genre.clone()) {
             Ok(path) => Path::new(&path).to_owned(),
             Err(_) => {
-                println!("could not find genre/type, don't use any arguments to print all genres");
+                warn!("Could not find genre/type, don't use any arguments to print all genres");
                 return Ok(());
             }
         };
@@ -237,7 +247,7 @@ pub fn genres(genre: &Option<String>) -> Result<(), Box<dyn std::error::Error>> 
         let (name, description) = genre_description::get_genre_description(genre_path.as_path())?;
 
         let music_files = read_dir(genre_path.as_path(), Some(".mp3"))?;
-        let mut music_tags: Vec<MusicTag> = music_tag::get_music_tags(music_files)?;
+        let mut music_tags: Vec<music_tag::MusicTag> = music_tag::get_music_tags(music_files)?;
 
         let big_tags: bool = if music_tags.len() > 15 {
             music_tags.sort_by(|a, b| a.album_title.cmp(&b.album_title));
@@ -270,7 +280,7 @@ pub fn genres(genre: &Option<String>) -> Result<(), Box<dyn std::error::Error>> 
         Ok(())
     } else {
         // print all genres and their description
-        let music_dir = get_config()?.music_dir;
+        let music_dir = config::get_config()?.music_dir;
         let genre_dirs = read_dir(music_dir.as_path(), None)?;
 
         for genre_dir in genre_dirs {
@@ -279,10 +289,10 @@ pub fn genres(genre: &Option<String>) -> Result<(), Box<dyn std::error::Error>> 
                     Ok(cont) => cont,
                     Err(err) => {
                         match err.kind() {
-                            ErrorKind::NotFound => println!(
-                                "could not find description for folder {genre_dir}, skipping"
-                            ),
-                            _ => println!("skipping {genre_dir} because of error: {err}"),
+                            ErrorKind::NotFound => {
+                                warn!("Could not find description for folder {genre_dir}, skipping")
+                            }
+                            _ => error!("skipping {genre_dir} because of error: {err}"),
                         }
                         continue;
                     }
@@ -295,11 +305,8 @@ pub fn genres(genre: &Option<String>) -> Result<(), Box<dyn std::error::Error>> 
     }
 }
 
-pub fn create_genre(
-    genre_name: &String,
-    genre_description: &String,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let config = get_config()?;
+pub fn create_genre(genre_name: &String, genre_description: &String) -> Result<()> {
+    let config = config::get_config()?;
     let music_dir = config.music_dir;
 
     let genre_dir = music_dir.join(genre_name);
@@ -307,10 +314,10 @@ pub fn create_genre(
     // checks if de genre directory already exists, makes it if it does not
     if !genre_dir.is_dir() {
         match fs::create_dir(&genre_dir) {
-            Ok(_t) => println!("made genre directory {}", &genre_dir.display()),
+            Ok(_t) => info!("made genre directory {}", &genre_dir.display()),
 
             Err(err) => {
-                eprintln!("Could not make genre directory");
+                error!("Could not make genre directory");
                 return Err(err.into());
             }
         }
@@ -326,7 +333,10 @@ pub fn create_genre(
     Ok(())
 }
 
-fn create_file(path: &Path, content: String) -> std::io::Result<()> {
+use std::fs::File;
+use std::os::unix::fs::FileExt;
+
+pub fn create_file(path: &Path, content: String) -> Result<()> {
     // create a file
     let description_file = File::create(path)?;
 
@@ -335,3 +345,5 @@ fn create_file(path: &Path, content: String) -> std::io::Result<()> {
 
     Ok(())
 }
+
+pub type Result<T, E = Box<dyn std::error::Error>> = std::result::Result<T, E>;

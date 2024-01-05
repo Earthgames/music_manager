@@ -1,4 +1,5 @@
 use lofty::{Accessor, Probe, TaggedFileExt};
+use log::warn;
 
 // type to store music albums and songs
 
@@ -9,17 +10,24 @@ pub struct MusicTag {
     pub album_title: String,
 }
 
-pub fn get_music_tags(music_files: Vec<String>) -> Result<Vec<MusicTag>, &'static str> {
+pub fn get_music_tags(
+    music_files: Vec<String>,
+) -> Result<Vec<MusicTag>, Box<dyn std::error::Error>> {
     let mut music_songs: Vec<MusicTag> = Vec::new();
 
     for music_file in music_files {
-        let tagged_file = Probe::open(&music_file)
-        		.expect("ERROR: Bad path provided!")
-		.read()
-		.expect("ERROR: Failed to read file!");
+        let tagged_file = Probe::open(&music_file)?.read()?;
         let tag = match tagged_file.primary_tag() {
             Some(tag) => tag,
-            None => tagged_file.first_tag().expect("No tag found"),
+            None => match tagged_file.first_tag() {
+                Some(tag) => tag,
+                None => {
+                    return Err(Box::new(std::io::Error::new(
+                        std::io::ErrorKind::NotFound,
+                        "No Tag found",
+                    )));
+                }
+            },
         };
 
         if let Some(title) = tag.title() {
@@ -31,13 +39,13 @@ pub fn get_music_tags(music_files: Vec<String>) -> Result<Vec<MusicTag>, &'stati
                         album_title: album.to_string(),
                     });
                 } else {
-                    println!("{} is skipped because it has no album tag", &music_file)
+                    warn!("{} is skipped because it has no album tag", &music_file)
                 }
             } else {
-                println!("{} is skipped because it has no artis tag", &music_file)
+                warn!("{} is skipped because it has no artis tag", &music_file)
             }
         } else {
-            println!("{} is skipped because it has no titel tag", &music_file)
+            warn!("{} is skipped because it has no titel tag", &music_file)
         }
     }
     Ok(music_songs)
