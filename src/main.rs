@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
 use log::{self, error};
-use music_manager::*;
+use music_manager::commands::*;
 use simplelog::{LevelFilter, TermLogger};
 use std::process;
 
@@ -67,7 +67,7 @@ fn main() {
 
     match &cli.command {
         // download youtube music and move in a genre directory
-        Commands::Download { url, genre } => match download(url, genre) {
+        Commands::Download { url, genre } => match download::download(url, genre) {
             Ok(_t) => {
                 if cli.clean {
                     clean_tmp()
@@ -83,7 +83,7 @@ fn main() {
             }
         },
         // print all genres with a description
-        Commands::Genres { genre } => match genres(genre) {
+        Commands::Genres { genre } => match genre::genres(genre) {
             Ok(_t) => process::exit(0),
             Err(err) => {
                 error!("{err}");
@@ -91,7 +91,7 @@ fn main() {
             }
         },
 
-        Commands::MakeGenre { genre, description } => match create_genre(genre, description) {
+        Commands::MakeGenre { genre, description } => match genre::create_genre(genre, description) {
             Ok(_t) => process::exit(0),
             Err(err) => {
                 error!("{err}");
