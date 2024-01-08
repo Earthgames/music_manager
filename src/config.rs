@@ -1,6 +1,6 @@
 use crate::{create_file, Result};
 use directories::{BaseDirs, UserDirs};
-use log::info;
+use log::{error, info, warn};
 use serde::{Deserialize, Serialize};
 use std::{
     fs,
@@ -35,7 +35,16 @@ pub fn get_config() -> Result<Config> {
         Err(err) => match err.kind() {
             ErrorKind::NotFound => {
                 info!("Could not find config, making it");
-                fs::create_dir(config_dir.join("music_manager"))?;
+                match fs::create_dir(config_dir.join("music_manager")) {
+                    Ok(_) => (),
+                    Err(err) => match err.kind() {
+                        ErrorKind::AlreadyExists => warn!("Directory already exists"),
+                        _ => {
+                            error!("Could not make directory\n{err}");
+                            return Err(Box::new(err));
+                        }
+                    },
+                }
                 let music_dir = Path::new(&get_dir_music()?).to_owned();
                 let default_dir = music_dir.join("other");
                 let config = Config {
