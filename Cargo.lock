@@ -109,6 +109,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "clap_complete"
+version = "4.4.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "97aeaa95557bd02f23fbb662f981670c3d20c5a26e69f7354b28f57092437fcd"
+dependencies = [
+ "clap",
+]
+
+[[package]]
 name = "clap_derive"
 version = "4.4.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -125,6 +134,16 @@ name = "clap_lex"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "702fc72eb24e5a1e48ce58027a675bc24edd52096d5397d4aea7c6dd9eca0bd1"
+
+[[package]]
+name = "clap_mangen"
+version = "0.2.16"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "10b5db60b3310cdb376fbeb8826e875a38080d0c61bdec0a91a3da8338948736"
+dependencies = [
+ "clap",
+ "roff",
+]
 
 [[package]]
 name = "colorchoice"
@@ -352,6 +371,8 @@ name = "music_manager"
 version = "0.0.1"
 dependencies = [
  "clap",
+ "clap_complete",
+ "clap_mangen",
  "colored",
  "directories",
  "glob",
@@ -441,6 +462,12 @@ dependencies = [
  "libredox",
  "thiserror",
 ]
+
+[[package]]
+name = "roff"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b833d8d034ea094b1ea68aa6d5c740e0d04bad9d16568d08ba6f76823a114316"
 
 [[package]]
 name = "rustix"
