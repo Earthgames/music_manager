@@ -3,7 +3,7 @@ use crate::Result;
 use serde::{Deserialize, Serialize};
 use std::{fs, io::Error, path::Path};
 
-// type to get the discription
+// type to get the description
 #[derive(Deserialize, Serialize)]
 struct Description {
     name: String,
