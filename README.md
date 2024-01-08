@@ -5,20 +5,21 @@ A cli to manage music
 ## How to use
 
 ```text
-Usage: music_manager [OPTIONS] `<COMMAND>`
+Usage: music_manager [OPTIONS] <COMMAND>
 
 Commands:
-
-  down    download youtube music and move in a genre directory
-  genr    print genres with a description
-  mkgenr  makes a new genre directory
-  help    Print this message or the help of the given subcommand(s)
+  down <URL> [GENRE]    download youtube music and move in a genre directory: 
+  genr [GENRE]          print genres with a description: 
+  mkgenr <GENRE> [DESCRIPTION]  
+                        makes a new genre directory
+  help                  Print this message or the help of the given subcommand(s)
 
 Options:
-
-  -c, --clean    Clean tmp directory on exit
-  -h, --help     Print help
-  -V, --version  Print version
+  -c, --clean           Clean tmp directory on exit
+  -l, --log_level <LOG_LEVEL>  
+                        log level: 0 silent, 1 errors, 2 warnings, 3 info, [default: 3]
+  -h, --help            Print help
+  -V, --version         Print version
 ```
 
 ## How to install
@@ -39,15 +40,13 @@ The main config file should be at
 
 The following options are available
 
-music_dir, the root directory for the music
-
-default_dir, the directory where the music without a directory name are put in
-
-tmp_dir, the directory where the music is downloaded in
+- music_dir, the root directory for the music
+- default_dir, the directory where the music without a directory name are put in
+- tmp_dir, the directory where the music is downloaded in
 
 ### Folder structure
 
-An example  of a folder structure. Note that the tmp folder does not have to be in the root directory
+An example of a folder structure. Note that the tmp folder does not have to be in the root directory
 
 ```text
 .
@@ -65,8 +64,10 @@ An example  of a folder structure. Note that the tmp folder does not have to be 
 ```
 
 A description.toml should be in every folder that can be used by the Music Manager
-the description has the following fields
-name, the name of the music that is in the folder
-description, a description of the music that is in the folder
 
-Note that the name field is not used when searching for a directory in the down subcommand. But shorts can be used to type less thus  `music_manager down youtube/link j` will result in it being moved to the j-pop folder
+the description has the following fields
+
+- name, the name of the music that is in the folder
+- description, a description of the music that is in the folder
+
+Note that the name field is not used when searching for a genre. But shorts can be used, so: `music_manager down youtube/link j` will result in it being moved to the `j-pop` folder
