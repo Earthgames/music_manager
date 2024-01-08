@@ -1,52 +1,11 @@
-use clap::{Parser, Subcommand};
+use clap::Parser;
+use cli::{Cli, Commands};
 use log::{self, error};
 use music_manager::commands::*;
 use simplelog::{LevelFilter, TermLogger};
 use std::process;
 
-#[derive(Parser)]
-#[clap(author, version, about, long_about = None)]
-#[clap(propagate_version = true)]
-struct Cli {
-    /// Clean tmp directory on exit
-    #[clap(short, long)]
-    clean: bool,
-
-    /// log level:
-    /// 0 silent,
-    /// 1 errors,
-    /// 2 warnings,
-    /// 3 info,
-    #[clap(short, long)]
-    #[clap(default_value_t = 3)]
-    loglevel: u8,
-
-    #[clap(subcommand)]
-    command: Commands,
-}
-
-#[derive(Subcommand)]
-enum Commands {
-    /// download youtube music and move in a genre directory
-    #[clap(name = "down")]
-    Download {
-        url: String,
-        #[clap(default_value_t = String::from("other"))]
-        genre: String,
-    },
-    /// print genres with a description
-    #[clap(name = "genr")]
-    Genres { genre: Option<String> },
-
-    /// makes a new genre directory
-    #[clap(name = "mkgenr")]
-    MakeGenre {
-        genre: String,
-
-        #[clap(default_value_t = String::from("default description, please insert your own"))]
-        description: String,
-    },
-}
+mod cli;
 
 fn main() {
     let cli = Cli::parse();
@@ -91,7 +50,8 @@ fn main() {
             }
         },
 
-        Commands::MakeGenre { genre, description } => match genre::create_genre(genre, description) {
+        Commands::MakeGenre { genre, description } => match genre::create_genre(genre, description)
+        {
             Ok(_t) => process::exit(0),
             Err(err) => {
                 error!("{err}");
