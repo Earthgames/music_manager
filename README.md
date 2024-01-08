@@ -28,6 +28,27 @@ Install [loudgain](https://github.com/Moonbase59/loudgain "https://github.com/Mo
 
 Clone this repository and use `cargo install --path .`
 
+### Completions
+
+For linux only, the same files could possibly be used on windows.
+There are also files for other shells, but I would not know where to put them
+
+#### Bash
+
+Copy the ./target/assets/music_manager.bash to /usr/share/bash_completion/completions/music_manager:
+`sudo cp ./target/assets/music_manager.bash /usr/share/bash-completion/completions/music_manager`
+
+#### Zsh
+
+*Untested*
+Copy the ./target/assets/_music_manager to /usr/share/zsh/functions/Completion/Base/_music_manager
+`sudo cp ./target/assets/_music_manager /usr/share/zsh/functions/Completion/Base/`
+
+### Man pages
+
+Move the man pages form ./target/assets/ to /usr/share/man/man1
+`sudo mv ./target/assets/*.1 /usr/share/man/man1/`
+
 ## Config
 
 The main config file should be at
