@@ -56,9 +56,11 @@ pub fn clean_tmp() {
     };
 
     for file in tmp_dir_content {
-        match fs::remove_file(file) {
-            Ok(_) => {}
-            Err(_) => {}
+        match fs::remove_file(&file) {
+            Ok(_) => (),
+            Err(err) => {
+                error!("Could not remove file {file}\n{err}")
+            }
         };
     }
 }
