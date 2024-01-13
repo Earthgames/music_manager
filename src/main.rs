@@ -9,6 +9,7 @@ mod cli;
 
 fn main() {
     let cli = Cli::parse();
+    let mut log_config = simplelog::ConfigBuilder::new();
     TermLogger::init(
         match cli.loglevel {
             0 => LevelFilter::Off,
@@ -18,7 +19,7 @@ fn main() {
             4 => LevelFilter::Debug,
             _ => LevelFilter::Trace,
         },
-        simplelog::Config::default(),
+        log_config.set_time_level(LevelFilter::Off).build(),
         simplelog::TerminalMode::Stdout,
         simplelog::ColorChoice::Auto,
     )
