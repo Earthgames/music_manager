@@ -9,7 +9,7 @@ edition = "2021"
 [dependencies]
 directories = "5.0" # to get the user directories
 glob = "0.3" # to read directories
-lofty = "0.17" # read tags and manipulate all music tags
+lofty = "0.18" # read tags and manipulate all music tags
 clap = { version = "4.0", features = ["derive", "cargo", "env"] } # command line interface
 clap_complete = "4.4"
 colored = "2.0" # color output and bold and other cool output for terminal
