@@ -10,7 +10,7 @@ pub struct Cli {
     pub clean: bool,
 
     /// log level:
-    /// 0 silent,
+    /// 0 quiet,
     /// 1 errors,
     /// 2 warnings,
     /// 3 info,
