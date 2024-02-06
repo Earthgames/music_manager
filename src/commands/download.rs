@@ -1,4 +1,4 @@
-use crate::{config, Result};
+use crate::{config, normalize, Result};
 use log::{error, info, warn};
 use std::{fs, io::ErrorKind, path::Path, process::Command};
 
@@ -68,25 +68,12 @@ pub fn download(web_address: &String, genre_type: &str) -> Result<()> {
         }
     }
 
-    // normalize opus files
-    let normalizer = match Command::new("loudgain")
-        .current_dir(&tmp_music_dir)
-        .arg("-r")
-        .args(&opus_files)
-        .status()
-    {
-        Ok(e) => e,
+    match normalize::normalize(&tmp_music_dir, &opus_files) {
+        Ok(_) => {}
         Err(err) => {
-            error!("Could not use loudgain command \n is it installed?");
-            return Err(err.into());
+            error!("{}\n", err.to_string());
+            print!("Could not normalize with loudgain")
         }
-    };
-
-    if !normalizer.success() {
-        error!(
-            "loudgain {}\nFailed to normalize audio with loudgain, please do it yourself",
-            normalizer
-        );
     };
 
     // search for dir so short names are possible. otherwise try to use the other directory

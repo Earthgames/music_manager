@@ -2,6 +2,7 @@ pub mod commands;
 pub mod config;
 pub mod genre_description;
 pub mod music_tag;
+pub mod normalize;
 
 use std::{fs::File, os::unix::fs::FileExt, path::Path};
 
