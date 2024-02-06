@@ -10,9 +10,13 @@ mod cli;
 fn main() {
     let cli = Cli::parse();
     let mut log_config = simplelog::ConfigBuilder::new();
+    let mut quiet = false;
     TermLogger::init(
         match cli.loglevel {
-            0 => LevelFilter::Off,
+            0 => {
+                quiet = true;
+                LevelFilter::Off
+            }
             1 => LevelFilter::Error,
             2 => LevelFilter::Warn,
             3 => LevelFilter::Info,
@@ -27,7 +31,7 @@ fn main() {
 
     match &cli.command {
         // download youtube music and move in a genre directory
-        Commands::Download { url, genre } => match download::download(url, genre) {
+        Commands::Download { url, genre } => match download::download(url, genre, quiet) {
             Ok(_t) => {
                 if cli.clean {
                     clean_tmp()

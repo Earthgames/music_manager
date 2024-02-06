@@ -4,7 +4,7 @@ use std::{fs, io::ErrorKind, path::Path, process::Command};
 
 /// The download sub command
 /// this will try to download with yt-dlp and normalize with loudgain
-pub fn download(web_address: &String, genre_type: &str) -> Result<()> {
+pub fn download(web_address: &String, genre_type: &str, quiet: bool) -> Result<()> {
     // get user config directory
     let config = config::get_config()?;
     let music_dir = config.music_dir;
@@ -31,6 +31,10 @@ pub fn download(web_address: &String, genre_type: &str) -> Result<()> {
             "--audio-format",
             "opus",
             "--split-chapters",
+            match quiet {
+                true => "-q",
+                false => "--no-quiet",
+            },
         ])
         .arg(web_address)
         .current_dir(&tmp_music_dir)
