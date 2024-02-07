@@ -75,7 +75,7 @@ pub fn download(web_address: &str, genre_type: &str, quiet: bool) -> Result<()> 
     match normalize::normalize(&tmp_music_dir, &opus_files, quiet) {
         Ok(_) => {}
         Err(err) => {
-            error!("{}\n", err.to_string());
+            error!("{}", err.to_string());
             print!("Could not normalize with loudgain")
         }
     };
