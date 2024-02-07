@@ -2,6 +2,7 @@ use crate::{config, genre_description, Result};
 use glob::glob;
 use log::{error, info, warn};
 use std::{fs, io::ErrorKind, path::Path, process};
+pub mod add;
 pub mod download;
 pub mod genre;
 

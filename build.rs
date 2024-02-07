@@ -9,7 +9,7 @@ use std::{
 };
 
 include!("src/cli.rs");
-
+//TODO Find a way to make add suggest files, and build it automatically instead of being unusable
 fn build_shell_completion(outdir: &Path) -> Result<(), Error> {
     let mut app = Cli::command();
     let shells = Shell::value_variants();
@@ -21,7 +21,7 @@ fn build_shell_completion(outdir: &Path) -> Result<(), Error> {
     Ok(())
 }
 
-fn build_manpages(outdir: &Path) -> Result<(), Error> {
+fn build_man_pages(outdir: &Path) -> Result<(), Error> {
     let app = Cli::command();
     let name = app.get_display_name().unwrap_or_else(|| app.get_name());
 
@@ -55,7 +55,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     std::fs::create_dir_all(&path).unwrap();
 
     build_shell_completion(&path)?;
-    build_manpages(&path)?;
+    build_man_pages(&path)?;
 
     Ok(())
 }

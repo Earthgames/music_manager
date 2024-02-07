@@ -63,5 +63,13 @@ fn main() {
                 process::exit(1);
             }
         },
+
+        Commands::AddToLib { files, genre } => match add::add_to_lib(files, genre, quiet) {
+            Ok(_) => process::exit(0),
+            Err(err) => {
+                error!("{err}");
+                process::exit(1);
+            }
+        },
     };
 }

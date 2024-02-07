@@ -44,4 +44,14 @@ pub enum Commands {
         #[clap(default_value_t = String::from("default description, please insert your own"))]
         description: String,
     },
+
+    /// Add music to library
+    #[clap(name = "add")]
+    AddToLib {
+        #[clap(value_hint=ValueHint::FilePath)]
+        files: String,
+
+        #[clap(default_value_t = String::from("other"))]
+        genre: String,
+    },
 }
