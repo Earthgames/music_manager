@@ -32,7 +32,7 @@ fn main() {
     match &cli.command {
         // download youtube music and move in a genre directory
         Commands::Download { url, genre } => match download::download(url, genre, quiet) {
-            Ok(_t) => {
+            Ok(_) => {
                 if cli.clean {
                     clean_tmp()
                 }
@@ -48,7 +48,7 @@ fn main() {
         },
         // print all genres with a description
         Commands::Genres { genre } => match genre::genres(genre) {
-            Ok(_t) => process::exit(0),
+            Ok(_) => process::exit(0),
             Err(err) => {
                 error!("{err}");
                 process::exit(1);
@@ -57,7 +57,7 @@ fn main() {
 
         Commands::MakeGenre { genre, description } => match genre::create_genre(genre, description)
         {
-            Ok(_t) => process::exit(0),
+            Ok(_) => process::exit(0),
             Err(err) => {
                 error!("{err}");
                 process::exit(1);
