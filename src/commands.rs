@@ -128,3 +128,30 @@ pub fn move_files(
     }
     Ok(())
 }
+
+pub fn move_to_genre(genre: &str, files: &Vec<String>) -> Result<()> {
+    let config = config::get_config()?;
+    // search for dir so short names are possible. otherwise try to use the default directory
+    let genre_dir = match search_genre(genre) {
+        Ok(dir) => Path::new(&dir).to_owned(),
+        Err(_) => {
+            // could this be different ??
+            info!("genre {genre} not found");
+            let default_dir = config.default_dir;
+            if !Path::new(&default_dir).is_dir() {
+                warn!("The default_dir is not in {}", default_dir.display());
+                print!(
+                    "The files where not moved because the genre and default directory was not found"
+                );
+                return Ok(());
+            }
+            print!(
+                "The files where moved to {} because the genre was not found",
+                default_dir.to_str().unwrap()
+            );
+            default_dir
+        }
+    };
+
+    move_files(files, genre_dir.to_str().unwrap())
+}

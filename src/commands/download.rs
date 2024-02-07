@@ -80,21 +80,5 @@ pub fn download(web_address: &str, genre_type: &str, quiet: bool) -> Result<()> 
         }
     };
 
-    // search for dir so short names are possible. otherwise try to use the other directory
-    let genre_dir = match super::search_genre(genre_type.to_string()) {
-        Ok(dir) => Path::new(&dir).to_owned(),
-        Err(_) => {
-            // could this be different ??
-            info!("genre_type not found");
-            let default_dir = config.default_dir;
-            if !Path::new(&default_dir).is_dir() {
-                warn!("The default_dir is not in {}", default_dir.display());
-                return Ok(());
-            }
-            default_dir
-        }
-    };
-
-    super::move_files(opus_files, genre_dir.to_str().unwrap())?;
-    Ok(())
+    super::move_to_genre(genre_type, &opus_files)
 }
