@@ -9,7 +9,7 @@ pub struct Cli {
     #[clap(short, long)]
     pub clean: bool,
 
-    /// log level:
+    /// Log level:
     /// 0 quiet,
     /// 1 errors,
     /// 2 warnings,
@@ -24,18 +24,18 @@ pub struct Cli {
 
 #[derive(Subcommand, Debug)]
 pub enum Commands {
-    /// download youtube music and move in a genre directory
+    /// Download youtube music and move in a genre directory
     #[clap(name = "down")]
     Download {
         url: String,
         #[clap(default_value_t = String::from("other"))]
         genre: String,
     },
-    /// print genres with a description
+    /// Print genres with a description
     #[clap(name = "genr")]
     Genres { genre: Option<String> },
 
-    /// makes a new genre directory
+    /// Makes a new genre directory
     #[clap(name = "mkgenr")]
     MakeGenre {
         genre: String,
