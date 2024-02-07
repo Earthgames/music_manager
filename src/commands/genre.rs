@@ -6,7 +6,7 @@ use std::{fs, io::ErrorKind, path::Path};
 /// Print details about genres
 pub fn genres(genre: &Option<String>) -> Result<()> {
     if let Some(genre) = genre {
-        let genre_path = match super::search_genre(genre.clone()) {
+        let genre_path = match super::search_genre(genre) {
             Ok(path) => Path::new(&path).to_owned(),
             Err(_) => {
                 warn!("Could not find genre/type, don't use any arguments to print all genres");

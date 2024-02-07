@@ -79,14 +79,14 @@ fn search(query: &str, content: Vec<String>) -> Vec<String> {
 }
 
 /// Searches for a genre, and returns the is the full genre name
-fn search_genre(genre: String) -> Result<String> {
+fn search_genre(genre: &str) -> Result<String> {
     // get config
     let config = config::get_config()?;
     let music_dir = config.music_dir;
 
     let genre_type_dirs = read_dir(&music_dir, None)?;
 
-    let genre_dir = search(&genre, genre_type_dirs);
+    let genre_dir = search(genre, genre_type_dirs);
 
     // Checking if the directory exists, otherwise it checks if the other directory,
     // if not it creates it
@@ -102,7 +102,7 @@ fn search_genre(genre: String) -> Result<String> {
 
 /// Move some files
 pub fn move_files(
-    target_files: Vec<String>,
+    target_files: &Vec<String>,
     target_dir: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
     for file in target_files {
@@ -113,8 +113,8 @@ pub fn move_files(
             },
             None => continue,
         };
-        fs::copy(&file, format!("{target_dir}/{file_name}"))?;
-        match fs::remove_file(&file) {
+        fs::copy(file, format!("{target_dir}/{file_name}"))?;
+        match fs::remove_file(file) {
             Ok(_) => info!("moved {file} to {target_dir}"),
             Err(e) => {
                 warn!(
