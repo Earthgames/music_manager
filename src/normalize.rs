@@ -9,13 +9,10 @@ use std::{
 pub fn normalize(dir: &Path, files: &Vec<String>, quiet: bool) -> Result<()> {
     let normalizer = match Command::new("loudgain")
         .current_dir(dir)
-        .args([
-            "-r",
-            match quiet {
-                true => "-q",
-                false => "",
-            },
-        ])
+        .arg(match quiet {
+            true => "-rq",
+            false => "-r",
+        })
         .args(files)
         .status()
     {
