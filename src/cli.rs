@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueHint};
 
 //TODO add https://docs.rs/clap/4.1.4/clap/builder/enum.ValueHint.html
 #[derive(Parser, Debug)]
@@ -27,6 +27,7 @@ pub enum Commands {
     /// Download youtube music and move in a genre directory
     #[clap(name = "down")]
     Download {
+        #[clap(value_hint=ValueHint::Url)]
         url: String,
         #[clap(default_value_t = String::from("other"))]
         genre: String,
