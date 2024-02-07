@@ -5,9 +5,9 @@ use std::{fs, io::ErrorKind, path::Path, process};
 pub mod download;
 pub mod genre;
 
-/// Gives a string with all the files in that match a path pattern
+/// Gives a string with all the files in that are in a directory,
+/// with an option to only include files with a certain file extension
 pub fn read_dir(dir: &Path, file_ext: Option<&str>) -> Result<Vec<String>> {
-    let mut result: Vec<String> = Vec::new();
     let search = match file_ext {
         Some(ext) => dir.join(format!("*{ext}")),
         None => dir.join("*"),
@@ -22,7 +22,13 @@ pub fn read_dir(dir: &Path, file_ext: Option<&str>) -> Result<Vec<String>> {
             )))
         }
     };
-    for entry in match glob(dir) {
+    read_pattern(dir)
+}
+
+/// Gives a string with all the files in that match a path pattern
+pub fn read_pattern(pattern: &str) -> Result<Vec<String>> {
+    let mut result: Vec<String> = Vec::new();
+    for entry in match glob(pattern) {
         Ok(paths) => paths,
         Err(err) => return Err(Box::new(err)),
     } {
