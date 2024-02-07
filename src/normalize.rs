@@ -6,10 +6,16 @@ use std::{
     process::Command,
 };
 
-pub fn normalize(dir: &Path, files: &Vec<String>) -> Result<()> {
+pub fn normalize(dir: &Path, files: &Vec<String>, quiet: bool) -> Result<()> {
     let normalizer = match Command::new("loudgain")
         .current_dir(dir)
-        .arg("-r")
+        .args([
+            "-r",
+            match quiet {
+                true => "-q",
+                false => "",
+            },
+        ])
         .args(files)
         .status()
     {
