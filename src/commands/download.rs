@@ -76,7 +76,7 @@ pub fn download(web_address: &str, genre_type: &str, quiet: bool) -> Result<()> 
         Ok(_) => {}
         Err(err) => {
             error!("{}", err.to_string());
-            print!("Could not normalize with loudgain")
+            println!("Could not normalize with loudgain")
         }
     };
 
