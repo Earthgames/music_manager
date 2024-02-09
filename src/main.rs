@@ -47,7 +47,7 @@ fn main() {
             }
         },
         // print all genres with a description
-        Commands::Genres { genre } => match genre::genres(genre) {
+        Commands::Genres { genre } => match genre::genre(genre) {
             Ok(_) => process::exit(0),
             Err(err) => {
                 error!("{err}");
@@ -55,8 +55,7 @@ fn main() {
             }
         },
 
-        Commands::MakeGenre { genre, description } => match genre::create_genre(genre, description)
-        {
+        Commands::MakeGenre { genre, description } => match genre::mk_genre(genre, description) {
             Ok(_) => process::exit(0),
             Err(err) => {
                 error!("{err}");
@@ -64,7 +63,7 @@ fn main() {
             }
         },
 
-        Commands::AddToLib { files, genre } => match add::add_to_lib(files, genre, quiet) {
+        Commands::AddToLib { files, genre } => match add::add(files, genre, quiet) {
             Ok(_) => process::exit(0),
             Err(err) => {
                 error!("{err}");

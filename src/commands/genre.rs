@@ -4,7 +4,7 @@ use log::{error, info, warn};
 use std::{fs, io::ErrorKind, path::Path};
 
 /// Print details about genres
-pub fn genres(genre: &Option<String>) -> Result<()> {
+pub fn genre(genre: &Option<String>) -> Result<()> {
     if let Some(genre) = genre {
         let genre_path = match super::search_genre(genre) {
             Ok(path) => Path::new(&path).to_owned(),
@@ -76,7 +76,7 @@ pub fn genres(genre: &Option<String>) -> Result<()> {
     }
 }
 
-pub fn create_genre(genre_name: &String, genre_description: &String) -> Result<()> {
+pub fn mk_genre(genre_name: &String, genre_description: &String) -> Result<()> {
     let config = config::get_config()?;
     let music_dir = config.music_dir;
 

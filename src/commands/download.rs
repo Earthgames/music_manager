@@ -1,10 +1,12 @@
-use crate::{config, normalize, Result};
+use crate::{config, Result};
 use log::{error, info};
 use std::{fs, io::ErrorKind, path::Path, process::Command};
 
+use super::add::add_to_lib;
+
 /// The download sub command
 /// this will try to download with yt-dlp and normalize with loudgain
-pub fn download(web_address: &str, genre_type: &str, quiet: bool) -> Result<()> {
+pub fn download(web_address: &str, genre: &str, quiet: bool) -> Result<()> {
     // get user config directory
     let config = config::get_config()?;
     let music_dir = config.music_dir;
@@ -42,7 +44,7 @@ pub fn download(web_address: &str, genre_type: &str, quiet: bool) -> Result<()> 
     {
         Ok(e) => e,
         Err(err) => {
-            error!("Could not use yt-dlp command \n is it installed?");
+            error!("Could not use yt-dlp command");
             return Err(err.into());
         }
     };
@@ -72,13 +74,5 @@ pub fn download(web_address: &str, genre_type: &str, quiet: bool) -> Result<()> 
         }
     }
 
-    match normalize::normalize(&tmp_music_dir, &opus_files, quiet) {
-        Ok(_) => {}
-        Err(err) => {
-            error!("{}", err.to_string());
-            println!("Could not normalize with loudgain")
-        }
-    };
-
-    super::move_to_genre(genre_type, &opus_files)
+    add_to_lib(&opus_files, genre, quiet)
 }
