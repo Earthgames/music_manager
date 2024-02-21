@@ -5,10 +5,6 @@ use clap::{Parser, Subcommand, ValueHint};
 #[clap(author, version, about, long_about = None)]
 #[clap(propagate_version = true)]
 pub struct Cli {
-    /// Clean tmp directory on exit
-    #[clap(short, long)]
-    pub clean: bool,
-
     /// Log level:
     /// 0 quiet,
     /// 1 errors,
@@ -27,6 +23,10 @@ pub enum Commands {
     /// Download youtube music and move in a category directory
     #[clap(name = "down")]
     Download {
+        /// Clean tmp directory on exit
+        #[clap(short, long)]
+        clean: bool,
+
         #[clap(value_hint=ValueHint::Url)]
         url: String,
         #[clap(default_value_t = String::from("other"))]
