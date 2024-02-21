@@ -1,4 +1,5 @@
 use crate::{create_file, Result};
+use log::info;
 use serde::{Deserialize, Serialize};
 use std::{fs, io::Error, path::Path};
 
@@ -28,6 +29,13 @@ pub fn create_category_description(
     // Create path form the category_path
     let description_path = category_path.join("description.toml");
 
+    if description_path.is_file() {
+        info!(
+            "Description already exist in {}",
+            description_path.display()
+        );
+        return Ok(());
+    }
 
     let name = category_name.unwrap_or("default_name");
 
