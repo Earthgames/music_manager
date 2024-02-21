@@ -32,6 +32,19 @@ pub enum Commands {
         #[clap(default_value_t = String::from("other"))]
         category: String,
     },
+    /// Add music to library
+    #[clap(name = "add")]
+    AddToLib {
+        /// Force repay tags to be recalculated
+        #[clap(short, long)]
+        force: bool,
+        #[clap(value_hint=ValueHint::FilePath)]
+        files: String,
+
+        #[clap(default_value_t = String::from("other"))]
+        category: String,
+    },
+
     /// Print categories with a description
     #[clap(name = "genr")]
     Categories { category: Option<String> },
@@ -43,15 +56,5 @@ pub enum Commands {
 
         #[clap(default_value_t = String::from("default description, please insert your own"))]
         description: String,
-    },
-
-    /// Add music to library
-    #[clap(name = "add")]
-    AddToLib {
-        #[clap(value_hint=ValueHint::FilePath)]
-        files: String,
-
-        #[clap(default_value_t = String::from("other"))]
-        category: String,
     },
 }

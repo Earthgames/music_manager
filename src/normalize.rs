@@ -6,9 +6,9 @@ use std::{
     process::Command,
 };
 
-pub fn normalize(dir: &Path, files: &Vec<String>, quiet: bool) -> Result<()> {
+pub fn normalize(dir: &Path, files: &Vec<String>, quiet: bool, force: bool) -> Result<()> {
     for file in files {
-        if has_replaygain_tags(file)? {
+        if !force && has_replaygain_tags(file)? {
             info!("{file} already has replaygain tags, skipping normalizing");
             continue;
         }

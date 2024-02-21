@@ -70,7 +70,11 @@ fn main() {
             }
         },
 
-        Commands::AddToLib { files, category } => match add::add(files, category, quiet) {
+        Commands::AddToLib {
+            files,
+            category,
+            force,
+        } => match add::add(files, category, quiet, *force) {
             Ok(_) => process::exit(0),
             Err(err) => {
                 error!("{err}");

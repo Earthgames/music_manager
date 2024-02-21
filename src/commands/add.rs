@@ -3,14 +3,14 @@ use std::env::current_dir;
 
 use crate::{normalize, Result};
 
-pub fn add(files: &str, category: &str, quiet: bool) -> Result<()> {
+pub fn add(files: &str, category: &str, quiet: bool, force: bool) -> Result<()> {
     let files = super::read_pattern(files)?;
 
-    add_to_lib(&files, category, quiet)
+    add_to_lib(&files, category, quiet, force)
 }
 
-pub fn add_to_lib(files: &Vec<String>, category: &str, quiet: bool) -> Result<()> {
-    match normalize::normalize(&current_dir()?, files, quiet) {
+pub fn add_to_lib(files: &Vec<String>, category: &str, quiet: bool, force: bool) -> Result<()> {
+    match normalize::normalize(&current_dir()?, files, quiet, force) {
         Ok(_) => {}
         Err(err) => {
             error!("{}", err.to_string());

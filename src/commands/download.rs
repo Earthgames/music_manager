@@ -74,5 +74,5 @@ pub fn download(web_address: &str, category: &str, quiet: bool) -> Result<()> {
         }
     }
 
-    add_to_lib(&opus_files, category, quiet)
+    add_to_lib(&opus_files, category, quiet, true)
 }
