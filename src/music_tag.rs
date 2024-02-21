@@ -37,6 +37,11 @@ pub fn get_music_tags(music_files: &Vec<String>) -> Result<Vec<MusicTag>> {
     Ok(music_songs)
 }
 
+pub fn has_replaygain_tags(music_file: &String) -> Result<bool> {
+    let tag = get_tag(music_file)?;
+    Ok(tag.contains(&ItemKey::ReplayGainTrackPeak) && tag.contains(&ItemKey::ReplayGainTrackGain))
+}
+
 fn get_tag(music_file: &String) -> Result<Tag> {
     let tagged_file = Probe::open(music_file)?.read()?;
     let tag = match tagged_file.primary_tag() {
