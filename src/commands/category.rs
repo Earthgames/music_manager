@@ -85,7 +85,7 @@ pub fn mk_category(category_name: &String, category_description: &String) -> Res
 
     let category_dir = music_dir.join(category_name);
 
-    // checks if de category directory already exists, makes it if it does not
+    // checks if the category directory already exists, makes it if it does not
     if !category_dir.is_dir() {
         match fs::create_dir(&category_dir) {
             Ok(_t) => info!("made category directory {}", &category_dir.display()),
