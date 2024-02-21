@@ -8,10 +8,10 @@ A cli to manage music
 Usage: music_manager [OPTIONS] <COMMAND>
 
 Commands:
-  down <URL> [GENRE]    download youtube music and move in a genre directory: 
-  genr [GENRE]          print genres with a description: 
-  mkgenr <GENRE> [DESCRIPTION]  
-                        makes a new genre directory
+  down <URL> [CATEGORY]    download youtube music and move in a category directory: 
+  genr [CATEGORY]          print categories with a description: 
+  mkgenr <CATEGORY> [DESCRIPTION]  
+                        makes a new category directory
   help                  Print this message or the help of the given subcommand(s)
 
 Options:
@@ -91,4 +91,4 @@ the description has the following fields
 - name, the name of the music that is in the folder
 - description, a description of the music that is in the folder
 
-Note that the name field is not used when searching for a genre. But shorts can be used, so: `music_manager down youtube/link j` will result in it being moved to the `j-pop` folder
+Note that the name field is not used when searching for a category. But shorts can be used, so: `music_manager down youtube/link j` will result in it being moved to the `j-pop` folder

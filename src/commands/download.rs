@@ -6,7 +6,7 @@ use super::add::add_to_lib;
 
 /// The download sub command
 /// this will try to download with yt-dlp and normalize with loudgain
-pub fn download(web_address: &str, genre: &str, quiet: bool) -> Result<()> {
+pub fn download(web_address: &str, category: &str, quiet: bool) -> Result<()> {
     // get user config directory
     let config = config::get_config()?;
     let music_dir = config.music_dir;
@@ -74,5 +74,5 @@ pub fn download(web_address: &str, genre: &str, quiet: bool) -> Result<()> {
         }
     }
 
-    add_to_lib(&opus_files, genre, quiet)
+    add_to_lib(&opus_files, category, quiet)
 }

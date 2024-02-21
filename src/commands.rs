@@ -1,10 +1,10 @@
-use crate::{config, genre_description, Result};
+use crate::{category_description, config, Result};
 use glob::glob;
 use log::{error, info, warn};
 use std::{fs, io::ErrorKind, path::Path, process};
 pub mod add;
+pub mod category;
 pub mod download;
-pub mod genre;
 
 /// Gives a string with all the files in that are in a directory,
 /// with an option to only include files with a certain file extension
@@ -85,26 +85,26 @@ fn search(query: &str, content: Vec<String>) -> Vec<String> {
     results
 }
 
-/// Searches for a genre, and returns the is the full genre name
-fn search_genre(genre: &str) -> Result<String> {
+/// Searches for a category, and returns the is the full category name
+fn search_category(category: &str) -> Result<String> {
     // get config
     let config = config::get_config()?;
     let music_dir = config.music_dir;
 
-    let genre_type_dirs = read_dir(&music_dir, None)?;
+    let category_type_dirs = read_dir(&music_dir, None)?;
 
-    let genre_dir = search(genre, genre_type_dirs);
+    let category_dir = search(category, category_type_dirs);
 
     // Checking if the directory exists, otherwise it checks if the other directory,
     // if not it creates it
-    if genre_dir.is_empty() {
+    if category_dir.is_empty() {
         return Err(Box::new(std::io::Error::new(
             std::io::ErrorKind::NotFound,
             "No directory found",
         )));
     }
 
-    Ok(genre_dir[0].to_string())
+    Ok(category_dir[0].to_string())
 }
 
 /// Move some files
@@ -136,29 +136,29 @@ pub fn move_files(
     Ok(())
 }
 
-pub fn move_to_genre(genre: &str, files: &Vec<String>) -> Result<()> {
+pub fn move_to_category(category: &str, files: &Vec<String>) -> Result<()> {
     let config = config::get_config()?;
     // search for dir so short names are possible. otherwise try to use the default directory
-    let genre_dir = match search_genre(genre) {
+    let category_dir = match search_category(category) {
         Ok(dir) => Path::new(&dir).to_owned(),
         Err(_) => {
             // could this be different ??
-            info!("genre {genre} not found");
+            info!("category {category} not found");
             let default_dir = config.default_dir;
             if !Path::new(&default_dir).is_dir() {
                 warn!("The default_dir is not in {}", default_dir.display());
                 print!(
-                    "The files where not moved because the genre and default directory was not found"
+                    "The files where not moved because the category and default directory was not found"
                 );
                 return Ok(());
             }
             print!(
-                "The files where moved to {} because the genre was not found",
+                "The files where moved to {} because the category was not found",
                 default_dir.to_str().unwrap()
             );
             default_dir
         }
     };
 
-    move_files(files, genre_dir.to_str().unwrap())
+    move_files(files, category_dir.to_str().unwrap())
 }

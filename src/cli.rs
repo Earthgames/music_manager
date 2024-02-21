@@ -24,22 +24,22 @@ pub struct Cli {
 
 #[derive(Subcommand, Debug)]
 pub enum Commands {
-    /// Download youtube music and move in a genre directory
+    /// Download youtube music and move in a category directory
     #[clap(name = "down")]
     Download {
         #[clap(value_hint=ValueHint::Url)]
         url: String,
         #[clap(default_value_t = String::from("other"))]
-        genre: String,
+        category: String,
     },
-    /// Print genres with a description
+    /// Print categories with a description
     #[clap(name = "genr")]
-    Genres { genre: Option<String> },
+    Categories { category: Option<String> },
 
-    /// Makes a new genre directory
+    /// Makes a new category directory
     #[clap(name = "mkgenr")]
-    MakeGenre {
-        genre: String,
+    MakeCategory {
+        category: String,
 
         #[clap(default_value_t = String::from("default description, please insert your own"))]
         description: String,
@@ -52,6 +52,6 @@ pub enum Commands {
         files: String,
 
         #[clap(default_value_t = String::from("other"))]
-        genre: String,
+        category: String,
     },
 }

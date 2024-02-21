@@ -1,6 +1,6 @@
+pub mod category_description;
 pub mod commands;
 pub mod config;
-pub mod genre_description;
 pub mod music_tag;
 pub mod normalize;
 

@@ -10,8 +10,8 @@ struct Description {
     description: String,
 }
 
-pub fn get_genre_description(genre_path: &Path) -> std::io::Result<(String, String)> {
-    let description_path = genre_path.join("description.toml");
+pub fn get_category_description(category_path: &Path) -> std::io::Result<(String, String)> {
+    let description_path = category_path.join("description.toml");
     let contents = fs::read_to_string(description_path)?;
     let description: Description = match toml::from_str(contents.as_str()) {
         Ok(dis) => dis,
@@ -21,20 +21,20 @@ pub fn get_genre_description(genre_path: &Path) -> std::io::Result<(String, Stri
     Ok((description.name, description.description))
 }
 
-pub fn create_genre_description(
-    genre_path: &Path,
-    genre_name: Option<&str>,
-    genre_description: Option<&str>,
+pub fn create_category_description(
+    category_path: &Path,
+    category_name: Option<&str>,
+    category_description: Option<&str>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // implement Path everywhere, makes things easier
-    // create path form the genre_path, for now
-    let path_str = genre_path.join("description.toml");
+    // create path form the category_path, for now
+    let path_str = category_path.join("description.toml");
     let path = Path::new(&path_str);
 
-    let name = genre_name.unwrap_or("default_name");
+    let name = category_name.unwrap_or("default_name");
 
-    let description = genre_description
-        .unwrap_or("This is a default description for a genre. Please add your own");
+    let description = category_description
+        .unwrap_or("This is a default description for a category. Please add your own");
 
     let content = Description {
         name: name.to_string(),

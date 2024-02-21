@@ -30,8 +30,8 @@ fn main() {
     .unwrap();
 
     match &cli.command {
-        // download youtube music and move in a genre directory
-        Commands::Download { url, genre } => match download::download(url, genre, quiet) {
+        // download youtube music and move in a category directory
+        Commands::Download { url, category } => match download::download(url, category, quiet) {
             Ok(_) => {
                 if cli.clean {
                     clean_tmp()
@@ -46,8 +46,8 @@ fn main() {
                 process::exit(1);
             }
         },
-        // print all genres with a description
-        Commands::Genres { genre } => match genre::genre(genre) {
+        // print all categories with a description
+        Commands::Categories { category } => match category::category(category) {
             Ok(_) => process::exit(0),
             Err(err) => {
                 error!("{err}");
@@ -55,7 +55,10 @@ fn main() {
             }
         },
 
-        Commands::MakeGenre { genre, description } => match genre::mk_genre(genre, description) {
+        Commands::MakeCategory {
+            category,
+            description,
+        } => match category::mk_category(category, description) {
             Ok(_) => process::exit(0),
             Err(err) => {
                 error!("{err}");
@@ -63,7 +66,7 @@ fn main() {
             }
         },
 
-        Commands::AddToLib { files, genre } => match add::add(files, genre, quiet) {
+        Commands::AddToLib { files, category } => match add::add(files, category, quiet) {
             Ok(_) => process::exit(0),
             Err(err) => {
                 error!("{err}");
