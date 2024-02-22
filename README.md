@@ -9,8 +9,8 @@ Usage: music_manager [OPTIONS] <COMMAND>
 
 Commands:
   down <URL> [CATEGORY]    download youtube music and move in a category directory: 
-  genr [CATEGORY]          print categories with a description: 
-  mkgenr <CATEGORY> [DESCRIPTION]  
+  cat [CATEGORY]          print categories with a description: 
+  mkcat <CATEGORY> [DESCRIPTION]  
                         makes a new category directory
   help                  Print this message or the help of the given subcommand(s)
 
@@ -54,7 +54,7 @@ Move the man pages form ./target/assets/ to /usr/share/man/man1
 The main config file should be at
 
 | Platform          | Path                                                              |
-| ----------------- | ----------------------------------------------------------------- |
+|-------------------|-------------------------------------------------------------------|
 | Linux             | /home/user/.config/music_manager/config.toml                      |
 | Windows(untested) | /Users/user/Library/Application Support/music_manager/config.toml |
 | macOs(untested)   | C:\Users\user\AppData\Roaming/music_manager/config.toml           |

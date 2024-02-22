@@ -46,11 +46,11 @@ pub enum Commands {
     },
 
     /// Print categories with a description
-    #[clap(name = "genr")]
+    #[clap(name = "cat")]
     Categories { category: Option<String> },
 
     /// Makes a new category directory
-    #[clap(name = "mkgenr")]
+    #[clap(name = "mkcat")]
     MakeCategory {
         category: String,
 
