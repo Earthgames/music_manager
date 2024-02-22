@@ -4,7 +4,7 @@ pub mod download;
 
 use crate::{category_description, config, move_files, read_dir, search_category, Result};
 use log::{error, info, warn};
-use std::{fs, path::Path, process};
+use std::{fs, io::ErrorKind, path::Path, process};
 
 // TODO: remove
 pub fn clean_tmp() {
@@ -43,17 +43,21 @@ pub fn move_to_category(category: &str, files: &Vec<String>) -> Result<()> {
     let category_dir = match search_category(category) {
         Ok(dir) => Path::new(&dir).to_owned(),
         Err(_) => {
-            // could this be different ??
-            info!("category {category} not found");
+            warn!("category {category} not found");
+
+            // try moving to the default directory
             let default_dir = config.default_dir;
+
             if !Path::new(&default_dir).is_dir() {
                 warn!("The default_dir is not in {}", default_dir.display());
-                print!(
-                    "The files where not moved because the category and default directory was not found"
-                );
-                return Ok(());
+
+                return Err(Box::new(std::io::Error::new(
+                    ErrorKind::NotFound,
+                    "Could not find the category and default directory",
+                )));
             }
-            print!(
+
+            info!(
                 "The files where moved to {} because the category was not found",
                 default_dir.to_str().unwrap()
             );
