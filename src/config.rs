@@ -26,11 +26,15 @@ pub fn get_config() -> Result<Config> {
     };
     let config_dir = BaseDirs::config_dir(&base_dir);
     let config_path = config_dir.join("music_manager/config.toml");
+
     // get content or create new content
     let config: Config = match fs::read_to_string(&config_path) {
         Ok(cont) => match toml::from_str(cont.as_str()) {
             Ok(cont) => cont,
-            Err(err) => return Err(Box::new(err)),
+            Err(err) => {
+                error!("Could not read config");
+                return Err(Box::new(err));
+            }
         },
         Err(err) => match err.kind() {
             ErrorKind::NotFound => {
