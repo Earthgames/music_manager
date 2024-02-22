@@ -5,12 +5,12 @@ pub mod music_tag;
 pub mod normalize;
 
 use glob::glob;
-use log::{info, warn};
+use log::{error, info, warn};
 use std::{
     fs::{self, File},
-    io::ErrorKind,
+    io::{Error, ErrorKind},
     os::unix::fs::FileExt,
-    path::Path,
+    path::{Path, PathBuf},
 };
 
 /// Create a file with the given content
@@ -94,32 +94,41 @@ fn search_category(category: &str) -> Result<String> {
     Ok(category_dir[0].to_string())
 }
 
-/// Move some files
-pub fn move_files(
-    target_files: &Vec<String>,
-    target_dir: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
+/// Move files to the target directory
+pub fn move_files(target_files: &Vec<String>, target_dir: &Path) -> Result<()> {
     for file in target_files {
-        let file_name = match Path::new(&file).file_name() {
-            Some(name) => match name.to_str() {
-                Some(name) => name,
-                None => continue,
-            },
-            None => continue,
-        };
-        fs::copy(file, format!("{target_dir}/{file_name}"))?;
-        match fs::remove_file(file) {
-            Ok(_) => info!("moved {file} to {target_dir}"),
-            Err(e) => {
-                warn!(
-                    "copied {} to {}, could not remove the original",
-                    file, target_dir
-                );
-
-                return Err(Box::new(e));
-            }
-        };
+        match move_file(&PathBuf::from(file), target_dir) {
+            Ok(_) => (),
+            Err(err) => error!("could not move {file} because of {err}"),
+        }
     }
+    Ok(())
+}
+
+/// Move a file to the target directory
+pub fn move_file(target_file: &Path, target_dir: &Path) -> Result<()> {
+    // get the file name
+    let file_name = match target_file.file_name() {
+        Some(name) => match name.to_str() {
+            Some(name) => name,
+            None => {
+                // can this happen ??
+                return Err(Box::new(Error::new(
+                    ErrorKind::InvalidInput,
+                    "target_file has no filename",
+                )));
+            }
+        },
+        None => {
+            return Err(Box::new(Error::new(
+                ErrorKind::InvalidInput,
+                "target_file is not valid file",
+            )))
+        }
+    };
+
+    // move the file
+    fs::rename(target_file, target_dir.join(file_name))?;
     Ok(())
 }
 

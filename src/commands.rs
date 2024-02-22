@@ -61,5 +61,5 @@ pub fn move_to_category(category: &str, files: &Vec<String>) -> Result<()> {
         }
     };
 
-    move_files(files, category_dir.to_str().unwrap())
+    move_files(files, &category_dir)
 }
