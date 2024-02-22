@@ -1,5 +1,5 @@
 use crate::{
-    category_description, config,
+    category_config, config,
     music_tag::{get_music_tag, MusicTag},
     read_dir, Result,
 };
@@ -25,7 +25,7 @@ pub fn category(category: &Option<String>) -> Result<()> {
         };
 
         let (name, description) =
-            super::category_description::get_category_description(category_path.as_path())?;
+            super::category_config::get_category_config(category_path.as_path())?;
 
         let music_files = read_dir(category_path.as_path(), Some(".opus"))?;
 
@@ -69,16 +69,37 @@ pub fn category(category: &Option<String>) -> Result<()> {
         let category_dirs = read_dir(music_dir.as_path(), None)?;
 
         for category_dir in category_dirs {
-            let (name, description) = match category_description::get_category_description(
-                Path::new(&category_dir),
-            ) {
+            let category_dir = Path::new(&category_dir);
+
+            // check if it is a directory
+            if !category_dir.is_dir() {
+                continue;
+            }
+            // check if it is hidden
+            if category_dir
+                .file_name()
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .starts_with('.')
+            {
+                continue;
+            }
+
+            let (name, description) = match category_config::get_category_config(category_dir) {
                 Ok(cont) => cont,
                 Err(err) => {
                     match err.kind() {
                         ErrorKind::NotFound => {
-                            warn!("Could not find description for folder {category_dir}, skipping")
+                            warn!(
+                                "Could not find config for folder {}, skipping",
+                                category_dir.display()
+                            )
                         }
-                        _ => error!("skipping {category_dir} because of error: {err}"),
+                        _ => error!(
+                            "skipping {} because of error: {err}",
+                            category_dir.display()
+                        ),
                     }
                     continue;
                 }
@@ -108,7 +129,7 @@ pub fn mk_category(category_name: &String, category_description: &String) -> Res
         fs::create_dir(&untagged_dir)?
     }
 
-    category_description::create_category_description(
+    category_config::create_category_config(
         &category_dir,
         Some(category_name),
         Some(category_description),

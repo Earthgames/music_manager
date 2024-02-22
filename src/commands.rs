@@ -3,7 +3,7 @@ pub mod category;
 pub mod download;
 
 use crate::{
-    category_description, config, move_file, music_tag::get_music_tag, read_dir, search, Result,
+    category_config, config, move_file, music_tag::get_music_tag, read_dir, search, Result,
 };
 use log::{error, info, warn};
 use std::{

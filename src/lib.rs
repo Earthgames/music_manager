@@ -1,4 +1,4 @@
-pub mod category_description;
+pub mod category_config;
 pub mod commands;
 pub mod config;
 pub mod music_tag;
