@@ -8,16 +8,20 @@ use std::{
 
 pub fn normalize(dir: &Path, file: &Path, quiet: bool, force: bool) -> Result<()> {
     if !force && has_replaygain_tags(file)? {
-        info!("{} already has replaygain tags, skipping normalizing", file.display());
+        info!(
+            "{} already has replaygain tags, skipping normalizing",
+            file.display()
+        );
         return Ok(());
     }
 
     let normalizer = match Command::new("loudgain")
         .current_dir(dir)
         .arg(match quiet {
-            true => "-rq",
-            false => "-r",
-        })
+            true => "-aq",
+            false => "-a",
+        }) // album mode, and quiet if needed
+        .args(["-s", "i"]) // output mode i =  write replaygain2.0 tags plus extra tags
         .arg(file)
         .status()
     {
