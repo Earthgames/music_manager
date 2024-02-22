@@ -4,7 +4,7 @@ use crate::{
     read_dir, Result,
 };
 use colored::Colorize;
-use log::{error, warn};
+use log::{error, info, warn};
 use std::{
     fs,
     io::ErrorKind,
@@ -99,7 +99,10 @@ pub fn mk_category(category_name: &String, category_description: &String) -> Res
     // checks if the category directory already exists, makes it if it does not
     if !category_dir.is_dir() {
         fs::create_dir(&category_dir)?
+    } else {
+        info!("Category directory already exist");
     }
+
     let untagged_dir = music_dir.join("Untagged");
     if !untagged_dir.is_dir() {
         fs::create_dir(&untagged_dir)?
@@ -110,7 +113,7 @@ pub fn mk_category(category_name: &String, category_description: &String) -> Res
         Some(category_name),
         Some(category_description),
     )?;
-    println!("Made description file for category {}", &category_name);
 
+    info!("Made category at {}", &category_name);
     Ok(())
 }
