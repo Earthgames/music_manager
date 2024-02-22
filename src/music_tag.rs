@@ -57,10 +57,10 @@ pub fn get_music_tag(music_file: &Path) -> Result<MusicTag> {
     Ok(music_tag)
 }
 
-/// Check if a music has replaygain tags
+/// Check if a music file has replaygain tags
 pub fn has_replaygain_tags(music_file: &Path) -> Result<bool> {
     let tag = get_tag(music_file)?;
-    Ok(tag.contains(&ItemKey::ReplayGainTrackPeak) && tag.contains(&ItemKey::ReplayGainTrackGain))
+    Ok(tag.contains(&ItemKey::ReplayGainTrackGain))
 }
 
 fn get_tag(music_file: &Path) -> Result<Tag> {
