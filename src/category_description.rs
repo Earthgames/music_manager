@@ -48,7 +48,13 @@ pub fn create_category_description(
     };
 
     let toml = toml::to_string(&content)?;
-
     create_file(&description_path, toml)?;
+    
+    info!(
+        "Created description for {} at {}",
+        name,
+        description_path.display()
+    );
+
     Ok(())
 }
