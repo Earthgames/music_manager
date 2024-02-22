@@ -17,11 +17,15 @@ pub fn get_music_tag(music_file: &Path) -> Result<MusicTag> {
     let tag = get_tag(music_file)?;
 
     if let Some(title) = tag.title() {
-        if let Some(artist) = tag.artist() {
+        if let Some(artist) = tag.get(&ItemKey::AlbumArtist) {
             if let Some(album) = tag.album() {
                 music_tag = MusicTag {
                     song_title: title.to_string(),
-                    artist_name: artist.to_string(),
+                    artist_name: artist
+                        .clone()
+                        .into_value()
+                        .into_string()
+                        .unwrap_or_default(),
                     album_title: album.to_string(),
                 };
             } else {
