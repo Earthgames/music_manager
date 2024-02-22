@@ -1,5 +1,14 @@
 # Change log
 
+## 0.0.3
+
+- yt-dlp and loudgain respect loglevel quiet
+- added the add subcommand, to add music on disk to the library
+- renamed genre to category
+- music in categories is sorted on artist then album
+- normalizing now works
+- cat(perviously genr) does not work with the current library structure
+
 ## 0.0.2
 
 - reorganized the code
