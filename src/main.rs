@@ -1,6 +1,6 @@
 use clap::Parser;
 use cli::{Cli, Commands};
-use log::{self, error};
+use log::{self, error, info};
 use music_manager::commands::*;
 use simplelog::{LevelFilter, TermLogger};
 use std::process;
@@ -74,12 +74,20 @@ fn main() {
             files,
             category,
             force,
-        } => match add::add(files, category, quiet, *force) {
-            Ok(_) => process::exit(0),
-            Err(err) => {
-                error!("{err}");
-                process::exit(1);
+        } => {
+            // check if we get files
+            if files.len() == 0 {
+                info!("No files provided");
+                process::exit(0)
             }
-        },
+
+            match add::add(files, category, quiet, *force) {
+                Ok(_) => process::exit(0),
+                Err(err) => {
+                    error!("{err}");
+                    process::exit(1);
+                }
+            }
+        }
     };
 }

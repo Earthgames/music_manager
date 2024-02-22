@@ -1,8 +1,6 @@
-use crate::{config, Result};
+use crate::{commands::add::add, config, Result};
 use log::{error, info};
 use std::{fs, io::ErrorKind, path::Path, process::Command};
-
-use super::add::add_to_lib;
 
 /// The download sub command
 /// this will try to download with yt-dlp and normalize with loudgain
@@ -74,5 +72,5 @@ pub fn download(web_address: &str, category: &str, quiet: bool) -> Result<()> {
         }
     }
 
-    add_to_lib(&opus_files, category, quiet, true)
+    add(&opus_files, category, quiet, true)
 }

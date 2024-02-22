@@ -39,9 +39,9 @@ pub enum Commands {
         #[clap(short, long)]
         force: bool,
         #[clap(value_hint=ValueHint::FilePath)]
-        files: String,
+        files: Vec<String>,
 
-        #[clap(default_value_t = String::from("other"))]
+        #[clap(short)]
         category: String,
     },
 
