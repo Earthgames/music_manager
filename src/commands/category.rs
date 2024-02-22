@@ -1,7 +1,15 @@
-use crate::{category_description, config, music_tag, read_dir, search_category, Result};
+use crate::{
+    category_description, config,
+    music_tag::{get_music_tag, MusicTag},
+    read_dir, search_category, Result,
+};
 use colored::Colorize;
 use log::{error, warn};
-use std::{fs, io::ErrorKind, path::Path};
+use std::{
+    fs,
+    io::ErrorKind,
+    path::{Path, PathBuf},
+};
 
 /// Print details about categories
 pub fn category(category: &Option<String>) -> Result<()> {
@@ -19,8 +27,12 @@ pub fn category(category: &Option<String>) -> Result<()> {
         let (name, description) =
             super::category_description::get_category_description(category_path.as_path())?;
 
-        let music_files = read_dir(category_path.as_path(), Some(".mp3"))?;
-        let mut music_tags: Vec<music_tag::MusicTag> = music_tag::get_music_tags(&music_files)?;
+        let music_files = read_dir(category_path.as_path(), Some(".opus"))?;
+
+        let mut music_tags: Vec<MusicTag> = vec![];
+        for file in music_files {
+            music_tags.push(get_music_tag(&PathBuf::from(file))?)
+        }
 
         let big_tags: bool = if music_tags.len() > 15 {
             music_tags.sort_by(|a, b| a.album_title.cmp(&b.album_title));

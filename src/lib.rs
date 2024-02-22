@@ -5,7 +5,7 @@ pub mod music_tag;
 pub mod normalize;
 
 use glob::glob;
-use log::{error, info, warn};
+use log::error;
 use std::{
     fs::{self, File},
     io::{Error, ErrorKind},
