@@ -1,12 +1,12 @@
-use crate::{category_description, config, music_tag, Result};
+use crate::{category_description, config, music_tag, read_dir, search_category, Result};
 use colored::Colorize;
-use log::{error, info, warn};
+use log::{error, warn};
 use std::{fs, io::ErrorKind, path::Path};
 
 /// Print details about categories
 pub fn category(category: &Option<String>) -> Result<()> {
     if let Some(category) = category {
-        let category_path = match super::search_category(category) {
+        let category_path = match search_category(category) {
             Ok(path) => Path::new(&path).to_owned(),
             Err(_) => {
                 warn!(
@@ -19,7 +19,7 @@ pub fn category(category: &Option<String>) -> Result<()> {
         let (name, description) =
             super::category_description::get_category_description(category_path.as_path())?;
 
-        let music_files = super::read_dir(category_path.as_path(), Some(".mp3"))?;
+        let music_files = read_dir(category_path.as_path(), Some(".mp3"))?;
         let mut music_tags: Vec<music_tag::MusicTag> = music_tag::get_music_tags(&music_files)?;
 
         let big_tags: bool = if music_tags.len() > 15 {
@@ -54,7 +54,7 @@ pub fn category(category: &Option<String>) -> Result<()> {
     } else {
         // print all categories and their description
         let music_dir = config::get_config()?.music_dir;
-        let category_dirs = super::read_dir(music_dir.as_path(), None)?;
+        let category_dirs = read_dir(music_dir.as_path(), None)?;
 
         for category_dir in category_dirs {
             let (name, description) = match category_description::get_category_description(

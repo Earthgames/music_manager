@@ -1,10 +1,9 @@
+use crate::{normalize, read_pattern, Result};
 use log::error;
 use std::env::current_dir;
 
-use crate::{normalize, Result};
-
 pub fn add(files: &str, category: &str, quiet: bool, force: bool) -> Result<()> {
-    let files = super::read_pattern(files)?;
+    let files = read_pattern(files)?;
 
     add_to_lib(&files, category, quiet, force)
 }
