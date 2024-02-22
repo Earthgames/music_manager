@@ -84,17 +84,13 @@ pub fn mk_category(category_name: &String, category_description: &String) -> Res
     let music_dir = config.music_dir;
 
     let category_dir = music_dir.join(category_name);
-
     // checks if the category directory already exists, makes it if it does not
     if !category_dir.is_dir() {
-        match fs::create_dir(&category_dir) {
-            Ok(_t) => info!("made category directory {}", &category_dir.display()),
-
-            Err(err) => {
-                error!("Could not make category directory");
-                return Err(err.into());
-            }
-        }
+        fs::create_dir(&category_dir)?
+    }
+    let untagged_dir = music_dir.join("Untagged");
+    if !untagged_dir.is_dir() {
+        fs::create_dir(&untagged_dir)?
     }
 
     category_description::create_category_description(
@@ -102,7 +98,7 @@ pub fn mk_category(category_name: &String, category_description: &String) -> Res
         Some(category_name),
         Some(category_description),
     )?;
-    println!("made description file for category {}", &category_name);
+    println!("Made description file for category {}", &category_name);
 
     Ok(())
 }
