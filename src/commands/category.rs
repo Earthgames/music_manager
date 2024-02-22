@@ -103,7 +103,7 @@ pub fn mk_category(category_name: &String, category_description: &String) -> Res
         info!("Category directory already exist");
     }
 
-    let untagged_dir = music_dir.join("Untagged");
+    let untagged_dir = category_dir.join("Untagged");
     if !untagged_dir.is_dir() {
         fs::create_dir(&untagged_dir)?
     }
