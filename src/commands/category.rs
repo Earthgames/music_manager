@@ -1,7 +1,7 @@
 use crate::{
     category_description, config,
     music_tag::{get_music_tag, MusicTag},
-    read_dir, search_category, Result,
+    read_dir, Result,
 };
 use colored::Colorize;
 use log::{error, warn};
@@ -14,7 +14,7 @@ use std::{
 /// Print details about categories
 pub fn category(category: &Option<String>) -> Result<()> {
     if let Some(category) = category {
-        let category_path = match search_category(category) {
+        let category_path = match super::search_category(category) {
             Ok(path) => Path::new(&path).to_owned(),
             Err(_) => {
                 warn!(

@@ -37,6 +37,29 @@ pub fn clean_tmp() {
     }
 }
 
+/// Searches for a category, and returns the is the full category name
+fn search_category(category: &str) -> Result<String> {
+    // get config
+    let config = config::get_config()?;
+    let music_dir = config.music_dir;
+
+    let category_type_dirs = read_dir(&music_dir, None)?;
+
+    let category_dir = search(category, category_type_dirs);
+
+    // Checking if the directory exists, otherwise it checks if the other directory,
+    // if not it creates it
+    if category_dir.is_empty() {
+        return Err(Box::new(std::io::Error::new(
+            std::io::ErrorKind::NotFound,
+            "No directory found",
+        )));
+    }
+
+    Ok(category_dir[0].to_string())
+}
+
+/// Move a files to a category
 pub fn move_to_category(category: &str, files: &Vec<String>) -> Result<()> {
     let config = config::get_config()?;
     // search for dir so short names are possible. otherwise try to use the default directory

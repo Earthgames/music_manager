@@ -72,27 +72,6 @@ fn search(query: &str, content: Vec<String>) -> Vec<String> {
     results
 }
 
-/// Searches for a category, and returns the is the full category name
-fn search_category(category: &str) -> Result<String> {
-    // get config
-    let config = config::get_config()?;
-    let music_dir = config.music_dir;
-
-    let category_type_dirs = read_dir(&music_dir, None)?;
-
-    let category_dir = search(category, category_type_dirs);
-
-    // Checking if the directory exists, otherwise it checks if the other directory,
-    // if not it creates it
-    if category_dir.is_empty() {
-        return Err(Box::new(std::io::Error::new(
-            std::io::ErrorKind::NotFound,
-            "No directory found",
-        )));
-    }
-
-    Ok(category_dir[0].to_string())
-}
 
 /// Move files to the target directory
 pub fn move_files(target_files: &Vec<String>, target_dir: &Path) -> Result<()> {
