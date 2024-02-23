@@ -24,6 +24,7 @@ serde = { version = "1.0", features = [
 toml = "0.8" # toml format
 simplelog = "0.12" # logging
 log = "0.4" # logging
+indicatif = "0.17.8" # progress bar
 #musicbrainz_rs = "0.5.0" maybe use of later
 
 [build-dependencies]
