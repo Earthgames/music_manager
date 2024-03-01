@@ -28,17 +28,23 @@ pub fn create_category_config(
     category_description: Option<&str>,
 ) -> Result<()> {
     // Create path form the category_path
-    let description_path = category_path.join("config.toml");
+    let config_path = category_path.join("config.toml");
 
-    if description_path.is_file() {
-        info!(
-            "Description already exist in {}",
-            description_path.display()
-        );
+    if config_path.is_file() {
+        info!("Category config already exist in {}", config_path.display());
         return Ok(());
     }
 
-    let name = category_name.unwrap_or("default_name");
+    info!("Creating category config at {}", config_path.display());
+
+    let name = match category_name {
+        Some(name) => name,
+        None => category_path
+            .file_name()
+            .unwrap_or_default()
+            .to_str()
+            .unwrap_or("default name"),
+    };
 
     let description = category_description
         .unwrap_or("This is a default description for a category, please add your own");
@@ -49,12 +55,12 @@ pub fn create_category_config(
     };
 
     let toml = toml::to_string(&content)?;
-    create_file(&description_path, toml)?;
+    create_file(&config_path, toml)?;
 
     info!(
         "Created category config for {} at {}",
         name,
-        description_path.display()
+        config_path.display()
     );
 
     Ok(())
