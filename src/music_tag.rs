@@ -64,7 +64,12 @@ pub fn get_music_tag(music_file: &Path) -> Result<MusicTag> {
 /// Check if a music file has replaygain tags
 pub fn has_replaygain_tags(music_file: &Path) -> Result<bool> {
     let tag = get_tag(music_file)?;
-    Ok(tag.contains(&ItemKey::ReplayGainTrackGain))
+    let result = tag.contains(&ItemKey::ReplayGainTrackGain)
+        || tag.contains(&ItemKey::from_key(
+            lofty::TagType::VorbisComments,
+            "R128_TRACK_GAIN", // for opus and ogg types
+        ));
+    Ok(result)
 }
 
 fn get_tag(music_file: &Path) -> Result<Tag> {
