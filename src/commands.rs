@@ -91,7 +91,7 @@ pub fn move_to_category(category: &str, files: &Vec<String>) -> Result<()> {
             }
 
             info!(
-                "The files where moved to {} because the category was not found",
+                "The files where moved to \"{}\" because the category was not found",
                 default_dir.to_str().unwrap()
             );
             default_dir
@@ -114,7 +114,7 @@ pub fn move_to_category(category: &str, files: &Vec<String>) -> Result<()> {
                 if untagged_dir.is_dir() {
                     match move_file(&file, &untagged_dir) {
                         Ok(_) => info!(
-                            "moved {} to Untagged directory in {}",
+                            "moved \"{}\" to Untagged directory in \"{}\"",
                             file.display(),
                             category_dir.display()
                         ),
@@ -122,7 +122,7 @@ pub fn move_to_category(category: &str, files: &Vec<String>) -> Result<()> {
                         // if we can't move a file we won't try the rest
                         Err(err) => {
                             error!(
-                                "could not move {} to Untagged directory because {err}",
+                                "could not move \"{}\" to Untagged directory because error: {err}",
                                 file.display()
                             );
                             return Err(err);

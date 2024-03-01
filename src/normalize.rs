@@ -9,7 +9,7 @@ use std::{
 pub fn normalize(dir: &Path, file: &Path, quiet: bool, force: bool) -> Result<()> {
     if !force && has_replaygain_tags(file)? {
         info!(
-            "{} already has replaygain tags, skipping normalizing",
+            "\"{}\" already has replaygain tags, skipping normalizing",
             file.display()
         );
         return Ok(());
@@ -45,7 +45,7 @@ pub fn normalize(dir: &Path, file: &Path, quiet: bool, force: bool) -> Result<()
             ),
         )));
     };
-    info!("Normalized {}", file.display());
+    info!("Normalized \"{}\"", file.display());
 
     Ok(())
 }

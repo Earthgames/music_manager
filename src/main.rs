@@ -76,7 +76,7 @@ fn main() {
             force,
         } => {
             // check if we get files
-            if files.len() == 0 {
+            if files.is_empty() {
                 info!("No files provided");
                 process::exit(0)
             }

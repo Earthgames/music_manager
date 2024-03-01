@@ -7,7 +7,6 @@ use colored::Colorize;
 use log::{error, info, warn};
 use std::{
     fs,
-    io::ErrorKind,
     path::{Path, PathBuf},
 };
 
@@ -98,7 +97,7 @@ pub fn category(category: &Option<String>) -> Result<()> {
                 Err(err) => {
                     error!(
                         "Skipping {} because of error: {err}",
-                                category_dir.display()
+                        category_dir.display()
                     );
                     continue;
                 }
@@ -142,6 +141,6 @@ pub fn mk_category(category_name: &String, category_description: &String) -> Res
         Some(category_description),
     )?;
 
-    info!("Made category at {}", &category_name);
+    info!("Made category at \"{}\"", category_dir.display());
     Ok(())
 }

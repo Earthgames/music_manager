@@ -2,12 +2,6 @@ use crate::{normalize, Result};
 use log::error;
 use std::{env::current_dir, io::Error, path::PathBuf};
 
-/* pub fn add(files: &str, category: &str, quiet: bool, force: bool) -> Result<()> {
-    let files = read_pattern(files)?;
-
-    add_to_lib(&files, category, quiet, force)
-}
- */
 pub fn add(files: &Vec<String>, category: &str, quiet: bool, force: bool) -> Result<()> {
     for file in files {
         let file = PathBuf::from(file);

@@ -14,7 +14,7 @@ pub fn download(web_address: &str, category: &str, quiet: bool) -> Result<()> {
     // checks if de temporary directory exists, makes it if it does not
     if !Path::new(&tmp_music_dir).is_dir() {
         info!(
-            "there is no temporary directory in {}, trying to make it",
+            "there is no temporary directory in \"{}\", trying to make it",
             &tmp_music_dir.display()
         );
         fs::create_dir(&tmp_music_dir)?
