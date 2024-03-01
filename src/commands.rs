@@ -3,7 +3,10 @@ pub mod category;
 pub mod download;
 
 use crate::{
-    category_config, config, move_file, music_tag::get_music_tag, read_dir, search, Result,
+    category_config::{self, get_category_config},
+    config, move_file,
+    music_tag::get_music_tag,
+    read_dir, search, Result,
 };
 use log::{error, info, warn};
 use std::{
@@ -95,6 +98,8 @@ pub fn move_to_category(category: &str, files: &Vec<String>) -> Result<()> {
         }
     };
 
+    let category_config = get_category_config(&category_dir)?;
+
     for file in files {
         let file = PathBuf::from(file);
 
@@ -128,21 +133,36 @@ pub fn move_to_category(category: &str, files: &Vec<String>) -> Result<()> {
             }
         };
 
-        // create artist and album directories if they do not exist
-        let artist_dir = category_dir.join(change_forbidden_chars(&music_tag.artist_name));
-        if !artist_dir.is_dir() {
-            //if we can't create a directory we won't try the rest
-            fs::create_dir(&artist_dir)?;
-            info!("Created {} artist directory", artist_dir.display());
-        }
-        let album_dir = artist_dir.join(change_forbidden_chars(&music_tag.album_title));
-        if !album_dir.is_dir() {
-            fs::create_dir(&album_dir)?;
-            info!("Created {} album directory", album_dir.display());
-        }
+        let album_dir;
 
+        // check if there the category is one artist only
+        if category_config.artist_category.unwrap_or(false) {
+            album_dir = category_dir.join(change_forbidden_chars(&music_tag.album_title));
+            if !album_dir.is_dir() {
+                fs::create_dir(&album_dir)?;
+                info!("Created \"{}\" album directory", album_dir.display());
+            }
+        } else {
+            // create artist and album directories if they do not exist
+            let artist_dir = category_dir.join(change_forbidden_chars(&music_tag.artist_name));
+            if !artist_dir.is_dir() {
+                //if we can't create a directory we won't try the rest
+                fs::create_dir(&artist_dir)?;
+                info!("Created \"{}\" artist directory", artist_dir.display());
+            }
+
+            album_dir = artist_dir.join(change_forbidden_chars(&music_tag.album_title));
+            if !album_dir.is_dir() {
+                fs::create_dir(&album_dir)?;
+                info!("Created \"{}\" album directory", album_dir.display());
+            }
+        }
         move_file(&file, &album_dir)?;
-        info!("Moved {} to {}", file.display(), album_dir.display());
+        info!(
+            "Moved \"{}\" to \"{}\"",
+            file.display(),
+            album_dir.display()
+        );
     }
 
     Ok(())

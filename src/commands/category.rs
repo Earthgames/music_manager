@@ -24,8 +24,7 @@ pub fn category(category: &Option<String>) -> Result<()> {
             }
         };
 
-        let (name, description) =
-            super::category_config::get_category_config(category_path.as_path())?;
+        let category_config = super::category_config::get_category_config(category_path.as_path())?;
 
         let music_files = read_dir(category_path.as_path(), Some(".opus"))?;
 
@@ -45,8 +44,16 @@ pub fn category(category: &Option<String>) -> Result<()> {
             false
         };
 
-        println!("{}: {}", "Name".bold().purple(), name.bold());
-        println!("{}: {}", "Description".bold().blue(), description);
+        println!(
+            "{}: {}",
+            "Name".bold().purple(),
+            category_config.name.bold()
+        );
+        println!(
+            "{}: {}",
+            "Description".bold().blue(),
+            category_config.description
+        );
         println!();
 
         if music_tags.is_empty() {
@@ -86,26 +93,26 @@ pub fn category(category: &Option<String>) -> Result<()> {
                 continue;
             }
 
-            let (name, description) = match category_config::get_category_config(category_dir) {
+            let category_config = match category_config::get_category_config(category_dir) {
                 Ok(cont) => cont,
                 Err(err) => {
-                    match err.kind() {
-                        ErrorKind::NotFound => {
-                            warn!(
-                                "Could not find config for folder {}, skipping",
+                    error!(
+                        "Skipping {} because of error: {err}",
                                 category_dir.display()
-                            )
-                        }
-                        _ => error!(
-                            "skipping {} because of error: {err}",
-                            category_dir.display()
-                        ),
-                    }
+                    );
                     continue;
                 }
             };
-            println!("{}: {}", "Name".bold().purple(), name.bold());
-            println!("{}: {}", "Description".bold().blue(), description);
+            println!(
+                "{}: {}",
+                "Name".bold().purple(),
+                category_config.name.bold()
+            );
+            println!(
+                "{}: {}",
+                "Description".bold().blue(),
+                category_config.description
+            );
             println!();
         }
         Ok(())

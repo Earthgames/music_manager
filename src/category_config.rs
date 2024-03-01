@@ -1,25 +1,41 @@
 use crate::{create_file, Result};
-use log::info;
+use log::{error, info};
 use serde::{Deserialize, Serialize};
 use std::{fs, io::Error, path::Path};
 
 /// Config for the category
 #[derive(Deserialize, Serialize)]
-struct CategoryConfig {
-    name: String,
-    description: String,
+pub struct CategoryConfig {
+    pub name: String,
+    pub description: String,
+    /// If a category is dedicated to one artist
+    pub artist_category: Option<bool>,
 }
 
 /// Get the config for a category
-pub fn get_category_config(category_path: &Path) -> std::io::Result<(String, String)> {
+pub fn get_category_config(category_path: &Path) -> Result<CategoryConfig> {
     let description_path = category_path.join("config.toml");
+
+    if description_path.is_file() {
+        info!(
+            "Found category config at \"{}\"",
+            description_path.display()
+        )
+    } else {
+        error!(
+            "Could not find category config at \"{}\"",
+            description_path.display()
+        );
+        create_category_config(category_path, None, None)?;
+    }
+
     let contents = fs::read_to_string(description_path)?;
     let description: CategoryConfig = match toml::from_str(contents.as_str()) {
         Ok(dis) => dis,
-        Err(err) => return Err(Error::new(std::io::ErrorKind::Other, err)),
+        Err(err) => return Err(Box::new(Error::new(std::io::ErrorKind::Other, err))),
     };
 
-    Ok((description.name, description.description))
+    Ok(description)
 }
 
 pub fn create_category_config(
@@ -31,7 +47,10 @@ pub fn create_category_config(
     let config_path = category_path.join("config.toml");
 
     if config_path.is_file() {
-        info!("Category config already exist in {}", config_path.display());
+        info!(
+            "Category config already exist in \"{}\"",
+            config_path.display()
+        );
         return Ok(());
     }
 
@@ -52,13 +71,14 @@ pub fn create_category_config(
     let content = CategoryConfig {
         name: name.to_string(),
         description: description.to_string(),
+        artist_category: None,
     };
 
     let toml = toml::to_string(&content)?;
     create_file(&config_path, toml)?;
 
     info!(
-        "Created category config for {} at {}",
+        "Created category config for {} at \"{}\"",
         name,
         config_path.display()
     );
