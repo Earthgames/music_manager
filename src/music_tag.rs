@@ -6,9 +6,10 @@ use std::{io::Error, path::Path};
 /// Type to store music albums and songs
 #[derive(Eq, Ord, PartialEq, PartialOrd)]
 pub struct MusicTag {
-    pub artist_name: String,
     pub song_title: String,
+    pub artist_name: String,
     pub album_title: String,
+    pub album_artist: String,
 }
 
 /// Get a music tag form a file
@@ -16,48 +17,55 @@ pub fn get_music_tag(music_file: &Path) -> Result<MusicTag> {
     let music_tag;
     let tag = get_tag(music_file)?;
 
-    if let Some(title) = tag.title() {
-        if let Some(artist) = tag.get(&ItemKey::AlbumArtist) {
-            if let Some(album) = tag.album() {
-                music_tag = MusicTag {
-                    song_title: title.to_string(),
-                    artist_name: artist
-                        .clone()
-                        .into_value()
-                        .into_string()
-                        .unwrap_or_default(),
-                    album_title: album.to_string(),
-                };
-            } else {
-                error!(
-                    "{} is skipped because it has no album tag",
-                    music_file.display()
-                );
-                return Err(Box::new(Error::new(
-                    std::io::ErrorKind::NotFound,
-                    "could not find album tag",
-                )));
-            }
-        } else {
-            error!(
-                "{} is skipped because it has no artist tag",
-                music_file.display()
-            );
-            return Err(Box::new(Error::new(
-                std::io::ErrorKind::NotFound,
-                "could not find artist tag",
-            )));
-        }
-    } else {
+    // Song title
+    let Some(title) = tag.title() else {
         error!(
-            "{} is skipped because it has no title tag",
+            "\"{}\" is skipped because it has no title tag",
             music_file.display()
         );
-        return Err(Box::new(Error::new(
-            std::io::ErrorKind::NotFound,
-            "could not find title tag",
-        )));
+        return Err(error("could not find title tag"));
+    };
+
+    // artist name
+    let Some(artist) = tag.artist() else {
+        error!(
+            "{} is skipped because it has no artist tag",
+            music_file.display()
+        );
+        return Err(error("could not find artist tag"));
+    };
+
+    // album title
+    let Some(album) = tag.album() else {
+        error!(
+            "{} is skipped because it has no album tag",
+            music_file.display()
+        );
+        return Err(error("could not find album tag"));
+    };
+
+    // album artist
+    let Some(album_artist) = tag.get(&ItemKey::AlbumArtist) else {
+        error!(
+            "{} is skipped because it has no album artist tag",
+            music_file.display()
+        );
+        return Err(error("could not find album artist tag"));
+    };
+
+    {
+        music_tag = MusicTag {
+            song_title: title.to_string(),
+            album_artist: album_artist
+                .clone()
+                .into_value()
+                .into_string()
+                .unwrap_or_default(),
+            album_title: album.to_string(),
+            artist_name: artist.to_string(),
+        };
     }
+
     Ok(music_tag)
 }
 
@@ -78,13 +86,12 @@ fn get_tag(music_file: &Path) -> Result<Tag> {
         Some(tag) => tag,
         None => match tagged_file.first_tag() {
             Some(tag) => tag,
-            None => {
-                return Err(Box::new(std::io::Error::new(
-                    std::io::ErrorKind::NotFound,
-                    "No Tag found",
-                )))
-            }
+            None => return Err(error("No tag found")),
         },
     };
     Ok(tag.clone())
+}
+
+fn error(error: &str) -> Box<Error> {
+    Box::new(Error::new(std::io::ErrorKind::NotFound, error))
 }

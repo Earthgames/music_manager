@@ -144,7 +144,7 @@ pub fn move_to_category(category: &str, files: &Vec<String>) -> Result<()> {
             }
         } else {
             // create artist and album directories if they do not exist
-            let artist_dir = category_dir.join(change_forbidden_chars(&music_tag.artist_name));
+            let artist_dir = category_dir.join(change_forbidden_chars(&music_tag.album_artist));
             if !artist_dir.is_dir() {
                 //if we can't create a directory we won't try the rest
                 fs::create_dir(&artist_dir)?;
