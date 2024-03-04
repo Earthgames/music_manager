@@ -7,6 +7,7 @@ pub mod normalize;
 use glob::glob;
 use log::error;
 use std::{
+    ffi::OsStr,
     fs::{self, File},
     io::{Error, ErrorKind},
     os::unix::fs::FileExt,
@@ -26,7 +27,7 @@ pub fn create_file(path: &Path, content: String) -> Result<()> {
 
 /// Gives all the files in that are in a directory,
 /// with an option to only include files with a certain file extension
-pub fn read_dir(dir: &Path, file_ext: Option<&str>) -> Result<Vec<PathBuf>> {
+pub fn read_dir(dir: &Path, file_ext: Option<&OsStr>) -> Result<Vec<PathBuf>> {
     // check if it is a directory
     if !dir.is_dir() {
         error!("\"{}\" is a not a directory", dir.display());
@@ -37,7 +38,7 @@ pub fn read_dir(dir: &Path, file_ext: Option<&str>) -> Result<Vec<PathBuf>> {
     }
 
     let search = match file_ext {
-        Some(ext) => dir.join(format!("*{ext}")),
+        Some(ext) => dir.join(format!("*{}", ext.to_str().unwrap_or_default())),
         None => dir.join("*"),
     };
 
@@ -57,7 +58,7 @@ pub fn read_dir(dir: &Path, file_ext: Option<&str>) -> Result<Vec<PathBuf>> {
 /// with an option to only include files with a certain file extension
 pub fn read_dir_recursive(
     dir: &Path,
-    file_ext: Option<&str>,
+    file_ext: Option<&OsStr>,
     max_depth: u8,
 ) -> Result<Vec<PathBuf>> {
     read_dir_recursive_intern(dir, file_ext, 0, max_depth)
@@ -65,7 +66,7 @@ pub fn read_dir_recursive(
 
 fn read_dir_recursive_intern(
     dir: &Path,
-    file_ext: Option<&str>,
+    file_ext: Option<&OsStr>,
     depth: u8,
     max_depth: u8,
 ) -> Result<Vec<PathBuf>> {
@@ -75,7 +76,7 @@ fn read_dir_recursive_intern(
     }
 
     // search dir
-    let in_dir = read_dir(dir, file_ext)?;
+    let in_dir = read_dir(dir, None)?;
     let mut result = vec![];
 
     for file in in_dir {
@@ -86,7 +87,7 @@ fn read_dir_recursive_intern(
                 depth + 1,
                 max_depth,
             )?);
-        } else {
+        } else if file_ext.is_none() || file.extension() == file_ext {
             result.push(file);
         }
     }

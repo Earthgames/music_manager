@@ -1,11 +1,13 @@
 use crate::{
     category_config, config,
     music_tag::{get_music_tag, MusicTag},
-    read_dir, Result,
+    read_dir, read_dir_recursive, Result,
 };
+use clap::builder::OsStr;
 use colored::Colorize;
 use log::{error, info, warn};
 use std::{
+    ffi::OsString,
     fs,
     path::{Path, PathBuf},
 };
@@ -25,11 +27,15 @@ pub fn category(category: &Option<String>) -> Result<()> {
 
         let category_config = super::category_config::get_category_config(category_path.as_path())?;
 
-        let music_files = read_dir(category_path.as_path(), Some(".opus"))?;
+        let music_files =
+            read_dir_recursive(category_path.as_path(), Some(&OsStr::from("opus")), 3)?;
 
         let mut music_tags: Vec<MusicTag> = vec![];
         for file in music_files {
-            music_tags.push(get_music_tag(&PathBuf::from(file))?)
+            music_tags.push(match get_music_tag(&PathBuf::from(file)) {
+                Ok(tag) => tag,
+                Err(_) => continue,
+            });
         }
 
         let big_tags: bool = if music_tags.len() > 15 {
