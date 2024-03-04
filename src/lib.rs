@@ -24,9 +24,9 @@ pub fn create_file(path: &Path, content: String) -> Result<()> {
     Ok(())
 }
 
-/// Gives a string with all the files in that are in a directory,
+/// Gives all the files in that are in a directory,
 /// with an option to only include files with a certain file extension
-pub fn read_dir(dir: &Path, file_ext: Option<&str>) -> Result<Vec<String>> {
+pub fn read_dir(dir: &Path, file_ext: Option<&str>) -> Result<Vec<PathBuf>> {
     let search = match file_ext {
         Some(ext) => dir.join(format!("*{ext}")),
         None => dir.join("*"),
@@ -45,14 +45,14 @@ pub fn read_dir(dir: &Path, file_ext: Option<&str>) -> Result<Vec<String>> {
 }
 
 /// Gives a string with all the files in that match a path pattern
-pub fn read_pattern(pattern: &str) -> Result<Vec<String>> {
-    let mut result: Vec<String> = Vec::new();
+pub fn read_pattern(pattern: &str) -> Result<Vec<PathBuf>> {
+    let mut result: Vec<PathBuf> = Vec::new();
     for entry in match glob(pattern) {
         Ok(paths) => paths,
         Err(err) => return Err(Box::new(err)),
     } {
         match entry {
-            Ok(entry) => result.push(entry.display().to_string()),
+            Ok(entry) => result.push(entry),
             Err(err) => return Err(Box::new(err)),
         }
     }
@@ -71,7 +71,6 @@ fn search(query: &str, content: Vec<String>) -> Vec<String> {
 
     results
 }
-
 
 /// Move files to the target directory
 pub fn move_files(target_files: &Vec<String>, target_dir: &Path) -> Result<()> {

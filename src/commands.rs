@@ -41,7 +41,7 @@ pub fn clean_tmp() {
         match fs::remove_file(&file) {
             Ok(_) => (),
             Err(err) => {
-                error!("Could not remove file {file}\n{err}")
+                error!("Could not remove file {}\n{err}", file.display())
             }
         };
     }
@@ -55,7 +55,13 @@ fn search_category(category: &str) -> Result<String> {
 
     let category_type_dirs = read_dir(&music_dir, None)?;
 
-    let category_dir = search(category, category_type_dirs);
+    let category_dir = search(
+        category,
+        category_type_dirs
+            .iter()
+            .map(|x| x.display().to_string())
+            .collect(),
+    );
 
     // Checking if the directory exists, otherwise it checks if the other directory,
     // if not it creates it

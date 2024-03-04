@@ -1,6 +1,11 @@
 use crate::{commands::add::add, config, Result};
 use log::{error, info};
-use std::{fs, io::ErrorKind, path::Path, process::Command};
+use std::{
+    fs,
+    io::ErrorKind,
+    path::{Path, PathBuf},
+    process::Command,
+};
 
 /// The download sub command
 /// this will try to download with yt-dlp and normalize with loudgain
@@ -56,21 +61,28 @@ pub fn download(web_address: &str, category: &str, quiet: bool) -> Result<()> {
     };
 
     // creates a vector with only the newly created opus files
-    let mut opus_files: Vec<String> = Vec::new();
+    let mut opus_files: Vec<&PathBuf> = Vec::new();
     let tmp_dir_content_after = super::read_dir(&tmp_music_dir, None)?;
     if !tmp_dir_content.is_empty() {
         for content in tmp_dir_content_after.iter() {
-            if !tmp_dir_content.contains(content) && content.ends_with(".opus") {
-                opus_files.push(content.to_string());
+            if !tmp_dir_content.contains(content)
+                && content.extension().unwrap_or_default() == "opus"
+            {
+                opus_files.push(content);
             }
         }
     } else {
         for content in tmp_dir_content_after.iter() {
-            if content.ends_with(".opus") {
-                opus_files.push(content.to_string())
+            if content.extension().unwrap_or_default() == "opus" {
+                opus_files.push(content)
             }
         }
     }
 
-    add(&opus_files, category, quiet, true)
+    add(
+        &opus_files.iter().map(|x| x.display().to_string()).collect(),
+        category,
+        quiet,
+        true,
+    )
 }
