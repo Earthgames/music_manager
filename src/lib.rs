@@ -27,6 +27,15 @@ pub fn create_file(path: &Path, content: String) -> Result<()> {
 /// Gives all the files in that are in a directory,
 /// with an option to only include files with a certain file extension
 pub fn read_dir(dir: &Path, file_ext: Option<&str>) -> Result<Vec<PathBuf>> {
+    // check if it is a directory
+    if !dir.is_dir() {
+        error!("\"{}\" is a not a directory", dir.display());
+        return Err(Box::new(Error::new(
+            ErrorKind::InvalidInput,
+            "not a directory",
+        )));
+    }
+
     let search = match file_ext {
         Some(ext) => dir.join(format!("*{ext}")),
         None => dir.join("*"),
@@ -42,6 +51,46 @@ pub fn read_dir(dir: &Path, file_ext: Option<&str>) -> Result<Vec<PathBuf>> {
         }
     };
     read_pattern(dir)
+}
+
+/// Read a directory recursively to a max depth
+/// with an option to only include files with a certain file extension
+pub fn read_dir_recursive(
+    dir: &Path,
+    file_ext: Option<&str>,
+    max_depth: u8,
+) -> Result<Vec<PathBuf>> {
+    read_dir_recursive_intern(dir, file_ext, 0, max_depth)
+}
+
+fn read_dir_recursive_intern(
+    dir: &Path,
+    file_ext: Option<&str>,
+    depth: u8,
+    max_depth: u8,
+) -> Result<Vec<PathBuf>> {
+    // check depth
+    if depth > max_depth {
+        return Ok(vec![]);
+    }
+
+    // search dir
+    let in_dir = read_dir(dir, file_ext)?;
+    let mut result = vec![];
+
+    for file in in_dir {
+        if file.is_dir() {
+            result.extend(read_dir_recursive_intern(
+                &file,
+                file_ext,
+                depth + 1,
+                max_depth,
+            )?);
+        } else {
+            result.push(file);
+        }
+    }
+    Ok(result)
 }
 
 /// Gives a string with all the files in that match a path pattern
