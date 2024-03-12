@@ -45,7 +45,7 @@ pub fn read_dir(dir: &Path, file_ext: Option<&OsStr>) -> Result<Vec<PathBuf>> {
     let dir = match search.to_str() {
         Some(dir) => dir,
         None => {
-            return Err(Box::new(std::io::Error::new(
+            return Err(Box::new(Error::new(
                 ErrorKind::NotFound,
                 "Could not find directory",
             )))

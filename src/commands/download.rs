@@ -28,6 +28,7 @@ pub fn download(web_address: &str, category: &str, quiet: bool) -> Result<()> {
     let tmp_dir_content = super::read_dir(&tmp_music_dir, None)?;
 
     // download from yt with yt-dlp
+    //TODO use --print for yt-dlp and use that
     let downloader = match Command::new("yt-dlp")
         .args([
             "--extract-audio",

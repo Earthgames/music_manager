@@ -1,5 +1,5 @@
 use crate::{create_file, Result};
-use log::{error, info};
+use log::{debug, error, info};
 use serde::{Deserialize, Serialize};
 use std::{fs, io::Error, path::Path};
 
@@ -17,7 +17,7 @@ pub fn get_category_config(category_path: &Path) -> Result<CategoryConfig> {
     let description_path = category_path.join("config.toml");
 
     if description_path.is_file() {
-        info!(
+        debug!(
             "Found category config at \"{}\"",
             description_path.display()
         )

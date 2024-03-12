@@ -141,7 +141,7 @@ pub fn move_to_category(category: &str, files: &Vec<String>) -> Result<()> {
 
         let album_dir;
 
-        // check if there the category is one artist only
+        // check if the category is one artist only
         if category_config.artist_category.unwrap_or(false) {
             album_dir = category_dir.join(change_forbidden_chars(&music_tag.album_title));
             if !album_dir.is_dir() {
@@ -152,7 +152,7 @@ pub fn move_to_category(category: &str, files: &Vec<String>) -> Result<()> {
             // create artist and album directories if they do not exist
             let artist_dir = category_dir.join(change_forbidden_chars(&music_tag.album_artist));
             if !artist_dir.is_dir() {
-                //if we can't create a directory we won't try the rest
+                // if we can't create a directory we won't try the rest
                 fs::create_dir(&artist_dir)?;
                 info!("Created \"{}\" artist directory", artist_dir.display());
             }

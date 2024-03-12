@@ -19,7 +19,7 @@ pub fn get_config() -> Result<Config> {
         Some(dir) => dir,
         None => {
             return Err(Box::new(std::io::Error::new(
-                std::io::ErrorKind::NotFound,
+                ErrorKind::NotFound,
                 "Could not find directories",
             )))
         }
@@ -28,7 +28,7 @@ pub fn get_config() -> Result<Config> {
     let config_path = config_dir.join("music_manager/config.toml");
 
     // get content or create new content
-    let config: Config = match fs::read_to_string(&config_path) {
+    let config: Config = match fs::read_to_string(config_path) {
         Ok(cont) => match toml::from_str(cont.as_str()) {
             Ok(cont) => cont,
             Err(err) => {
