@@ -15,8 +15,8 @@ use std::{
 /// Print details about categories
 pub fn category(category: &Option<String>) -> Result<()> {
     if let Some(category) = category {
-        let category_path = match super::search_category(category) {
-            Ok(path) => Path::new(&path).to_owned(),
+        let category_path = match super::find_category(category) {
+            Ok(path) => path,
             Err(_) => {
                 warn!(
                     "Could not find category/type, don't use any arguments to print all categories"

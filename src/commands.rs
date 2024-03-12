@@ -3,10 +3,8 @@ pub mod category;
 pub mod download;
 
 use crate::{
-    category_config::{self, get_category_config},
-    config, move_file,
-    music_tag::get_music_tag,
-    read_dir, search, Result,
+    category_config::get_category_config, config, move_file, music_tag::get_music_tag, read_dir,
+    search, Result,
 };
 use log::{error, info, warn};
 use std::{
@@ -47,40 +45,46 @@ pub fn clean_tmp() {
     }
 }
 
-/// Searches for a category, and returns the is the full category name
-fn search_category(category: &str) -> Result<String> {
+/// Searches for a category, and returns the full category name
+fn find_category(category: &str) -> Result<PathBuf> {
     // get config
     let config = config::get_config()?;
     let music_dir = config.music_dir;
 
-    let category_type_dirs = read_dir(&music_dir, None)?;
+    let mut category_type_dirs = read_dir(&music_dir, None)?;
+    category_type_dirs.retain(|x| x.is_dir());
 
-    let category_dir = search(
+    let category_names = search(
         category,
         category_type_dirs
             .iter()
-            .map(|x| x.display().to_string())
+            .map(|x| x.file_name().unwrap().to_string_lossy().to_string()) // Nightmare code
             .collect(),
     );
 
-    // Checking if the directory exists, otherwise it checks if the other directory,
-    // if not it creates it
-    if category_dir.is_empty() {
+    // check if we found anything
+    if category_names.is_empty() {
         return Err(Box::new(std::io::Error::new(
-            std::io::ErrorKind::NotFound,
+            ErrorKind::NotFound,
             "No directory found",
         )));
     }
 
-    Ok(category_dir[0].to_string())
+    if category_names.len() > 1 {
+        info!("Found multiple categories that match search term")
+    }
+
+    let category_dir = music_dir.join(&category_names[0]);
+
+    Ok(category_dir)
 }
 
 /// Move a files to a category
 pub fn move_to_category(category: &str, files: &Vec<String>) -> Result<()> {
     let config = config::get_config()?;
     // search for dir so short names are possible. otherwise try to use the default directory
-    let category_dir = match search_category(category) {
-        Ok(dir) => Path::new(&dir).to_owned(),
+    let category_dir = match find_category(category) {
+        Ok(dir) => dir,
         Err(_) => {
             warn!("category {category} not found");
 
