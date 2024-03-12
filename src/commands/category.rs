@@ -1,9 +1,8 @@
 use crate::{
-    category_config, config,
+    category_config, config::get_config,
     music_tag::{get_music_tag, MusicTag},
     read_dir, read_dir_recursive, Result,
 };
-use clap::builder::OsStr;
 use colored::Colorize;
 use log::{error, info, warn};
 use std::{
@@ -14,6 +13,8 @@ use std::{
 
 /// Print details about categories
 pub fn category(category: &Option<String>) -> Result<()> {
+    let config = get_config()?;
+
     if let Some(category) = category {
         let category_path = match super::find_category(category) {
             Ok(path) => path,
@@ -25,14 +26,19 @@ pub fn category(category: &Option<String>) -> Result<()> {
             }
         };
 
-        let category_config = super::category_config::get_category_config(category_path.as_path())?;
+        let category_config = category_config::get_category_config(category_path.as_path())?;
+        
+        let extensions = config.file_extensions;
 
-        let music_files =
-            read_dir_recursive(category_path.as_path(), Some(&OsStr::from("opus")), 3)?;
+        let mut music_files: Vec<PathBuf> = vec![];
+
+        for extension in extensions{
+            music_files.append(&mut read_dir_recursive(category_path.as_path(), Some(&OsString::from(extension)), 3)?);
+        }
 
         let mut music_tags: Vec<MusicTag> = vec![];
         for file in music_files {
-            music_tags.push(match get_music_tag(&PathBuf::from(file)) {
+            music_tags.push(match get_music_tag(&file) {
                 Ok(tag) => tag,
                 Err(_) => continue,
             });
@@ -77,7 +83,7 @@ pub fn category(category: &Option<String>) -> Result<()> {
         Ok(())
     } else {
         // print all categories and their description
-        let music_dir = config::get_config()?.music_dir;
+        let music_dir = get_config()?.music_dir;
         let category_dirs = read_dir(music_dir.as_path(), None)?;
 
         for category_dir in category_dirs {
@@ -125,7 +131,7 @@ pub fn category(category: &Option<String>) -> Result<()> {
 }
 
 pub fn mk_category(category_name: &String, category_description: &String) -> Result<()> {
-    let config = config::get_config()?;
+    let config = get_config()?;
     let music_dir = config.music_dir;
 
     let category_dir = music_dir.join(category_name);
