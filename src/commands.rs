@@ -11,39 +11,7 @@ use std::{
     fs,
     io::ErrorKind,
     path::{Path, PathBuf},
-    process,
 };
-
-// TODO: remove
-pub fn clean_tmp() {
-    let music_dir = match config::get_config() {
-        Ok(dirs) => dirs,
-        Err(err) => {
-            error!("{err}");
-            process::exit(1);
-        }
-    }
-    .music_dir;
-
-    let tmp_music_dir = music_dir.join("tmp/*");
-
-    let tmp_dir_content = match read_dir(&tmp_music_dir, None) {
-        Ok(dirs) => dirs,
-        Err(err) => {
-            error!("{err}");
-            process::exit(1);
-        }
-    };
-
-    for file in tmp_dir_content {
-        match fs::remove_file(&file) {
-            Ok(_) => (),
-            Err(err) => {
-                error!("Could not remove file {}\n{err}", file.display())
-            }
-        };
-    }
-}
 
 /// Searches for a category, and returns the full category name
 fn find_category(category: &str) -> Result<PathBuf> {

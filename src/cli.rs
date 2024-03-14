@@ -23,10 +23,6 @@ pub enum Commands {
     /// Download youtube music and move in a category directory
     #[clap(name = "down")]
     Download {
-        /// Clean tmp directory on exit
-        #[clap(short, long)]
-        clean: bool,
-
         #[clap(value_hint=ValueHint::Url)]
         url: String,
         #[clap(default_value_t = String::from("other"))]

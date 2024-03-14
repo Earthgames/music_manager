@@ -31,22 +31,12 @@ fn main() {
 
     match &cli.command {
         // download youtube music and move in a category directory
-        Commands::Download {
-            url,
-            category,
-            clean,
-        } => match download::download(url, category, quiet) {
+        Commands::Download { url, category } => match download::download(url, category, quiet) {
             Ok(_) => {
-                if *clean {
-                    clean_tmp()
-                }
                 process::exit(0);
             }
             Err(err) => {
                 error!("{err}");
-                if *clean {
-                    clean_tmp()
-                }
                 process::exit(1);
             }
         },
