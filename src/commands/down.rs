@@ -1,6 +1,8 @@
-use crate::{normalize::normalize, Result};
-use log::{error, info};
 use std::{io::ErrorKind, path::PathBuf, process::Command};
+
+use log::{error, info};
+
+use crate::{normalize::normalize, Result};
 
 use super::find_category;
 

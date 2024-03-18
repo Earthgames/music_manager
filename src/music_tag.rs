@@ -1,7 +1,9 @@
-use crate::Result;
+use std::{io::Error, path::Path};
+
 use lofty::{Accessor, ItemKey, Probe, Tag, TagExt, TaggedFileExt};
 use log::error;
-use std::{io::Error, path::Path};
+
+use crate::Result;
 
 /// Type to store music albums and songs
 #[derive(Eq, Ord, PartialEq, PartialOrd)]

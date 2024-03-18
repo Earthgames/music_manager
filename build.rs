@@ -1,12 +1,13 @@
-use clap::{CommandFactory, ValueEnum};
-use clap_complete::{generate_to, Shell};
-use clap_mangen::Man;
 use std::{
     env,
     fs::File,
     io::Error,
     path::{Path, PathBuf},
 };
+
+use clap::{CommandFactory, ValueEnum};
+use clap_complete::{generate_to, Shell};
+use clap_mangen::Man;
 
 include!("src/cli.rs");
 //TODO Find a way to make add suggest files, and build it automatically instead of being unusable

@@ -1,7 +1,9 @@
-use crate::{create_file, Result};
+use std::{fs, io::Error, path::Path};
+
 use log::{debug, error, info};
 use serde::{Deserialize, Serialize};
-use std::{fs, io::Error, path::Path};
+
+use crate::{create_file, Result};
 
 /// Config for the category
 #[derive(Deserialize, Serialize)]

@@ -1,9 +1,11 @@
-use clap::Parser;
-use cli::{Cli, Commands};
-use log::{self, error, info};
-use music_manager::commands::*;
-use simplelog::{LevelFilter, TermLogger};
 use std::process;
+
+use clap::Parser;
+use log::{self, error, info};
+use simplelog::{LevelFilter, TermLogger};
+
+use cli::{Cli, Commands};
+use music_manager::commands::*;
 
 mod cli;
 
@@ -30,8 +32,8 @@ fn main() {
     .unwrap();
 
     match &cli.command {
-        // download youtube music and move in a category directory
-        Commands::Download { url, category } => match download::download(url, category, quiet) {
+        // download YouTube music and move in a category directory
+        Commands::Download { url, category } => match down::download(url, category, quiet) {
             Ok(_) => {
                 process::exit(0);
             }
@@ -41,7 +43,7 @@ fn main() {
             }
         },
         // print all categories with a description
-        Commands::Categories { category } => match category::category(category) {
+        Commands::Categories { category } => match cat::category(category) {
             Ok(_) => process::exit(0),
             Err(err) => {
                 error!("{err}");
@@ -52,7 +54,7 @@ fn main() {
         Commands::MakeCategory {
             category,
             description,
-        } => match category::mk_category(category, description) {
+        } => match cat::mk_category(category, description) {
             Ok(_) => process::exit(0),
             Err(err) => {
                 error!("{err}");

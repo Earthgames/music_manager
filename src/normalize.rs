@@ -1,10 +1,12 @@
-use crate::{music_tag::has_replaygain_tags, Result};
-use log::{error, info};
 use std::{
     io::{Error, ErrorKind},
     path::Path,
     process::Command,
 };
+
+use log::{error, info};
+
+use crate::{music_tag::has_replaygain_tags, Result};
 
 pub fn normalize(dir: &Path, file: &Path, quiet: bool, force: bool) -> Result<()> {
     if !force && has_replaygain_tags(file)? {

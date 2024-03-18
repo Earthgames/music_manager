@@ -20,7 +20,7 @@ pub struct Cli {
 
 #[derive(Subcommand, Debug)]
 pub enum Commands {
-    /// Download youtube music and move in a category directory
+    /// Download YouTube music and move in a category directory
     #[clap(name = "down")]
     Download {
         #[clap(value_hint=ValueHint::Url)]

@@ -1,11 +1,3 @@
-pub mod category_config;
-pub mod commands;
-pub mod config;
-pub mod music_tag;
-pub mod normalize;
-
-use glob::glob;
-use log::error;
 use std::{
     ffi::OsStr,
     fs::{self, File},
@@ -13,6 +5,15 @@ use std::{
     os::unix::fs::FileExt,
     path::{Path, PathBuf},
 };
+
+use glob::{glob, Pattern};
+use log::error;
+
+pub mod category;
+pub mod commands;
+pub mod config;
+pub mod music_tag;
+pub mod normalize;
 
 /// Create a file with the given content
 pub fn create_file(path: &Path, content: String) -> Result<()> {
@@ -55,7 +56,8 @@ pub fn read_dir(dir: &Path, file_ext: Option<&OsStr>) -> Result<Vec<PathBuf>> {
 }
 
 /// Read a directory recursively to a max depth
-/// with an option to only include files with a certain file extension
+/// with an option to only include files with a certain file extension.
+/// This function will only give files, not directories
 pub fn read_dir_recursive(
     dir: &Path,
     file_ext: Option<&OsStr>,

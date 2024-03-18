@@ -1,14 +1,16 @@
-use crate::{
-    category_config, config::get_config,
-    music_tag::{get_music_tag, MusicTag},
-    read_dir, read_dir_recursive, Result,
-};
-use colored::Colorize;
-use log::{error, info, warn};
 use std::{
     ffi::OsString,
     fs,
     path::{Path, PathBuf},
+};
+
+use colored::Colorize;
+use log::{error, info, warn};
+
+use crate::{
+    category, config::get_config,
+    music_tag::{get_music_tag, MusicTag},
+    read_dir, read_dir_recursive, Result,
 };
 
 /// Print details about categories
@@ -26,14 +28,14 @@ pub fn category(category: &Option<String>) -> Result<()> {
             }
         };
 
-        let category_config = category_config::get_category_config(category_path.as_path())?;
+        let category_config = category::get_category_config(&category_path)?;
         
         let extensions = config.file_extensions;
 
         let mut music_files: Vec<PathBuf> = vec![];
 
         for extension in extensions{
-            music_files.append(&mut read_dir_recursive(category_path.as_path(), Some(&OsString::from(extension)), 3)?);
+            music_files.append(&mut read_dir_recursive(&category_path, Some(&OsString::from(extension)), 3)?);
         }
 
         let mut music_tags: Vec<MusicTag> = vec![];
@@ -104,7 +106,7 @@ pub fn category(category: &Option<String>) -> Result<()> {
                 continue;
             }
 
-            let category_config = match category_config::get_category_config(category_dir) {
+            let category_config = match category::get_category_config(category_dir) {
                 Ok(cont) => cont,
                 Err(err) => {
                     error!(
@@ -147,7 +149,7 @@ pub fn mk_category(category_name: &String, category_description: &String) -> Res
         fs::create_dir(&untagged_dir)?
     }
 
-    category_config::create_category_config(
+    category::create_category_config(
         &category_dir,
         Some(category_name),
         Some(category_description),

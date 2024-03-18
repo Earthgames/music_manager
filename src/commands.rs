@@ -1,17 +1,20 @@
-pub mod add;
-pub mod category;
-pub mod download;
-
-use crate::{
-    category_config::get_category_config, config, move_file, music_tag::get_music_tag, read_dir,
-    search, Result,
-};
-use log::{error, info, warn};
 use std::{
     fs,
     io::ErrorKind,
     path::{Path, PathBuf},
 };
+
+use log::{error, info, warn};
+
+use crate::{
+    category::get_category_config, config, move_file, music_tag::get_music_tag, read_dir,
+    Result, search,
+};
+
+pub mod add;
+pub mod cat;
+pub mod down;
+pub mod check;
 
 /// Searches for a category, and returns the full category name
 fn find_category(category: &str) -> Result<PathBuf> {
