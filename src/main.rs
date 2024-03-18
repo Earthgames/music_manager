@@ -81,5 +81,12 @@ fn main() {
                 }
             }
         }
+        Commands::Check { category } => match check::check(category) {
+            Ok(_) => process::exit(0),
+            Err(err) => {
+                error!("{err}");
+                process::exit(1);
+            }
+        },
     };
 }

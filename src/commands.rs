@@ -149,7 +149,7 @@ pub fn move_to_category(category: &str, files: &Vec<String>) -> Result<()> {
     Ok(())
 }
 
-fn change_forbidden_chars(input: &str) -> String {
+pub fn change_forbidden_chars(input: &str) -> String {
     let mut output = String::new();
     for char in input.chars() {
         // replace chars with chars that look like it
