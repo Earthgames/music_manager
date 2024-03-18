@@ -37,10 +37,13 @@ pub fn read_dir(dir: &Path, file_ext: Option<&OsStr>) -> Result<Vec<PathBuf>> {
             "not a directory",
         )));
     }
+    
+    // sanitize the directory form pattern matching characters
+    let san_dir = PathBuf::from(Pattern::escape(dir.to_str().unwrap()));
 
     let search = match file_ext {
-        Some(ext) => dir.join(format!("*{}", ext.to_str().unwrap_or_default())),
-        None => dir.join("*"),
+        Some(ext) => san_dir.join(format!("*{}", ext.to_str().unwrap_or_default())),
+        None => san_dir.join("*"),
     };
 
     let dir = match search.to_str() {

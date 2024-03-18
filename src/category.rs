@@ -40,6 +40,7 @@ pub fn get_category_config(category_path: &Path) -> Result<CategoryConfig> {
     Ok(description)
 }
 
+//TODO add for every category https://xspf.org/applications
 pub fn create_category_config(
     category_path: &Path,
     category_name: Option<&str>,
