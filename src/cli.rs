@@ -53,8 +53,15 @@ pub enum Commands {
         #[clap(default_value_t = String::from("default description, please insert your own"))]
         description: String,
     },
-    
-    /// Check music 
+
+    /// Check music
     #[clap(name = "check")]
-    Check { category: Option<String> },
+    Check {
+        /// The category that needs to be checked, optional
+        category: Option<String>,
+        
+        /// If the tags and path needs to be checked, this is a lot slower
+        #[clap(short, long)]
+        tags_path: bool,
+    },
 }

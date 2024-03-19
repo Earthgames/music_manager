@@ -12,9 +12,14 @@ use crate::{create_file, Result};
 
 #[derive(Deserialize, Serialize)]
 pub struct Config {
+    /// The root directory of all the music
     pub music_dir: PathBuf,
+    /// The default directory
     pub default_dir: PathBuf,
+    /// File extensions that are allowed in the music folders
     pub file_extensions: Vec<String>,
+    /// Files to check if they are in the album directory, as a glob pattern
+    pub album_files: Option<Vec<String>>,
 }
 
 pub fn get_config() -> Result<Config> {
@@ -81,6 +86,7 @@ fn make_config() -> Result<Config> {
         music_dir,
         default_dir,
         file_extensions: vec!["opus".to_string()],
+        album_files: None,
     };
 
     let content = match toml::to_string(&config) {

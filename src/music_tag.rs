@@ -12,6 +12,7 @@ pub struct MusicTag {
     pub artist_name: String,
     pub album_title: String,
     pub album_artist: String,
+    pub replaygain: bool,
 }
 
 /// Get a music tag form a file
@@ -54,6 +55,8 @@ pub fn get_music_tag(music_file: &Path) -> Result<MusicTag> {
         );
         return Err(error("could not find album artist tag"));
     };
+    
+    
 
     {
         music_tag = MusicTag {
@@ -65,6 +68,7 @@ pub fn get_music_tag(music_file: &Path) -> Result<MusicTag> {
                 .unwrap_or_default(),
             album_title: album.to_string(),
             artist_name: artist.to_string(),
+            replaygain: tag_has_replaygain_tags(tag)?,
         };
     }
 
@@ -72,13 +76,17 @@ pub fn get_music_tag(music_file: &Path) -> Result<MusicTag> {
 }
 
 /// Check if a music file has replaygain tags
-pub fn has_replaygain_tags(music_file: &Path) -> Result<bool> {
+pub fn file_has_replaygain_tags(music_file: &Path) -> Result<bool> {
     let tag = get_tag(music_file)?;
+    tag_has_replaygain_tags(tag)
+}
+
+pub fn tag_has_replaygain_tags(tag: Tag) -> Result<bool> {
     let result = tag.contains(&ItemKey::ReplayGainTrackGain)
         || tag.contains(&ItemKey::from_key(
-            lofty::TagType::VorbisComments,
-            "R128_TRACK_GAIN", // for opus and ogg types
-        ));
+        lofty::TagType::VorbisComments,
+        "R128_TRACK_GAIN", // for opus and ogg types
+    ));
     Ok(result)
 }
 

@@ -81,7 +81,7 @@ fn main() {
                 }
             }
         }
-        Commands::Check { category } => match check::check(category) {
+        Commands::Check { category , tags_path} => match check::check(category,tags_path ) {
             Ok(_) => process::exit(0),
             Err(err) => {
                 error!("{err}");

@@ -12,6 +12,8 @@ pub struct CategoryConfig {
     pub description: String,
     /// If a category is dedicated to one artist
     pub artist_category: Option<bool>,
+    /// Files to check if they are in the album directory, as a glob pattern
+    pub album_files: Option<Vec<String>>,
 }
 
 /// Get the config for a category
@@ -75,6 +77,7 @@ pub fn create_category_config(
         name: name.to_string(),
         description: description.to_string(),
         artist_category: None,
+        album_files: None,
     };
 
     let toml = toml::to_string(&content)?;
