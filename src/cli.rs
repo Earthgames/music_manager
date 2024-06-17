@@ -14,6 +14,11 @@ pub struct Cli {
     #[clap(default_value_t = 3)]
     pub loglevel: u8,
 
+    /// Is the same as log level 0
+    /// Will override the log level
+    #[clap(short, long)]
+    pub quiet: bool,
+
     #[clap(subcommand)]
     pub command: Commands,
 }
@@ -28,7 +33,7 @@ pub enum Commands {
         #[clap(default_value_t = String::from("other"))]
         category: String,
     },
-    
+
     /// Add music to library
     #[clap(name = "add")]
     AddToLib {
@@ -66,5 +71,20 @@ pub enum Commands {
         /// If the tags and path need to be checked, this is a lot slower
         #[clap(short, long)]
         tags_path: bool,
+    },
+
+    /// Tag music and move to the library
+    #[clap(name = "tag")]
+    Tag {
+        /// Force files that are tagged to be tagged
+        #[clap(short, long)]
+        force: bool,
+
+        #[clap(value_hint=ValueHint::FilePath)]
+        files: Vec<String>,
+
+        /// The category that the tagged file will be moved to
+        #[clap(short, long)]
+        category: String,
     },
 }

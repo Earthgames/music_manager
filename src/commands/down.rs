@@ -1,8 +1,10 @@
 use std::{io::ErrorKind, path::PathBuf, process::Command};
+use std::env::current_dir;
 
 use log::{error, info};
 
 use crate::{normalize::normalize, Result};
+use crate::tag::tag;
 
 use super::find_category;
 
@@ -49,28 +51,24 @@ pub fn download(web_address: &str, category: &str, quiet: &bool) -> Result<()> {
     };
 
     // creates a vector with only the newly created opus files
-    let mut opus_files: Vec<&PathBuf> = Vec::new();
+    let mut opus_files: Vec<String> = Vec::new();
     let category_dir_content_after = super::read_dir(&category_dir, None)?;
     if !category_dir_content.is_empty() {
         for content in category_dir_content_after.iter() {
             if !category_dir_content.contains(content)
                 && content.extension().unwrap_or_default() == "opus"
             {
-                opus_files.push(content);
+                opus_files.push(content.to_string_lossy().to_string());
             }
         }
     } else {
         for content in category_dir_content_after.iter() {
             if content.extension().unwrap_or_default() == "opus" {
-                opus_files.push(content)
+                opus_files.push(content.to_string_lossy().to_string())
             }
         }
     }
 
-    info!("Normalizing files");
-
-    for file in opus_files {
-        normalize(&category_dir, file, quiet, &true)?;
-    }
-    Ok(())
+    // Tag all files
+    tag(current_dir()?, &opus_files, category, quiet, &false)
 }

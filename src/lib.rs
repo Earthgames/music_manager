@@ -14,6 +14,7 @@ pub mod commands;
 pub mod config;
 pub mod music_tag;
 pub mod normalize;
+pub mod tag;
 
 /// Create a file with the given content
 pub fn create_file(path: &Path, content: String) -> Result<()> {
@@ -128,11 +129,11 @@ fn search(query: &str, content: Vec<String>) -> Vec<String> {
 }
 
 /// Move files to the target directory
-pub fn move_files(target_files: &Vec<String>, target_dir: &Path) -> Result<()> {
+pub fn move_files(target_files: &Vec<PathBuf>, target_dir: &Path) -> Result<()> {
     for file in target_files {
         match move_file(&PathBuf::from(file), target_dir) {
             Ok(_) => (),
-            Err(err) => error!("could not move {file} because of {err}"),
+            Err(err) => error!("could not move {} because of {err}", file.display()),
         }
     }
     Ok(())

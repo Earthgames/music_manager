@@ -10,8 +10,8 @@ use log::{info, warn};
 
 use crate::category::CategoryConfig;
 use crate::{
-    category::get_category_config, config, move_file, music_tag::get_music_tag, read_dir, search,
-    Result,
+    category::get_category_config, config, move_file, move_files, music_tag::get_music_tag,
+    read_dir, read_pattern, search, Result,
 };
 
 pub mod add;
@@ -73,8 +73,8 @@ pub fn move_to_category(category: &str, files: &Vec<String>) -> Result<()> {
     Ok(())
 }
 
-/// Move folder to a category
-pub fn move_album_to_category(category: &str, files: &Vec<String>) -> Result<()> {
+/// Move folder per album to a category
+pub fn move_album_to_category(category: &str, files: &Vec<String>, cover: bool) -> Result<()> {
     let (category_dir, category_config) = move_setup(category)?;
 
     let folder_item: HashMap<&Path, PathBuf> = HashMap::new();
@@ -84,7 +84,21 @@ pub fn move_album_to_category(category: &str, files: &Vec<String>) -> Result<()>
         let parent = file.parent().unwrap();
         let album_dir = match folder_item.get(parent) {
             Some(a) => a,
-            None => &get_album_dir(&file, &category_dir, &category_config)?,
+            None => &*{
+                let album_dir = get_album_dir(&file, &category_dir, &category_config)?;
+                if cover {
+                    let covers = read_pattern(format!("{}/cover.*", parent.display()).as_str())?;
+                    move_files(&covers, &album_dir)?;
+                    for cover in covers {
+                        info!(
+                            "Moved \"{}\" to \"{}\"",
+                            cover.display(),
+                            album_dir.display()
+                        );
+                    }
+                }
+                album_dir
+            },
         };
 
         move_file(&file, album_dir)?;

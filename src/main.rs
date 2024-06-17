@@ -1,3 +1,4 @@
+use std::env::current_dir;
 use std::process;
 
 use clap::Parser;
@@ -6,6 +7,7 @@ use simplelog::{LevelFilter, TermLogger};
 
 use cli::{Cli, Commands};
 use music_manager::commands::*;
+use music_manager::tag;
 
 mod cli;
 
@@ -14,16 +16,21 @@ fn main() {
     let mut log_config = simplelog::ConfigBuilder::new();
     let mut quiet = false;
     TermLogger::init(
-        match cli.loglevel {
-            0 => {
-                quiet = true;
-                LevelFilter::Off
+        if cli.quiet {
+            quiet = true;
+            LevelFilter::Off
+        } else {
+            match cli.loglevel {
+                0 => {
+                    quiet = true;
+                    LevelFilter::Off
+                }
+                1 => LevelFilter::Error,
+                2 => LevelFilter::Warn,
+                3 => LevelFilter::Info,
+                4 => LevelFilter::Debug,
+                _ => LevelFilter::Trace,
             }
-            1 => LevelFilter::Error,
-            2 => LevelFilter::Warn,
-            3 => LevelFilter::Info,
-            4 => LevelFilter::Debug,
-            _ => LevelFilter::Trace,
         },
         log_config.set_time_level(LevelFilter::Off).build(),
         simplelog::TerminalMode::Stdout,
@@ -33,7 +40,7 @@ fn main() {
 
     match &cli.command {
         // download YouTube music and move in a category directory
-        Commands::Download { url, category } => match down::download(url, category, quiet) {
+        Commands::Download { url, category } => match down::download(url, category, &quiet) {
             Ok(_) => {
                 process::exit(0);
             }
@@ -82,7 +89,21 @@ fn main() {
                 }
             }
         }
-        Commands::Check { category , tags_path} => match check::check(category,tags_path ) {
+        Commands::Check {
+            category,
+            tags_path,
+        } => match check::check(category, tags_path) {
+            Ok(_) => process::exit(0),
+            Err(err) => {
+                error!("{err}");
+                process::exit(1);
+            }
+        },
+        Commands::Tag {
+            category,
+            files,
+            force,
+        } => match tag::tag(current_dir().unwrap(), files, category, &quiet, force) {
             Ok(_) => process::exit(0),
             Err(err) => {
                 error!("{err}");

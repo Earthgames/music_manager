@@ -28,7 +28,7 @@ pub fn add(
         };
     }
     if *album {
-        super::move_album_to_category(category, files)
+        super::move_album_to_category(category, files, true)
     } else {
         super::move_to_category(category, files)
     }

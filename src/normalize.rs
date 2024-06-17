@@ -1,3 +1,4 @@
+use std::process::Stdio;
 use std::{
     io::{Error, ErrorKind},
     path::Path,
@@ -19,6 +20,16 @@ pub fn normalize(dir: &Path, file: &Path, quiet: &bool, force: &bool) -> Result<
 
     let normalizer = match Command::new("loudgain")
         .current_dir(dir)
+        .stdout(if *quiet {
+            Stdio::null()
+        } else {
+            Stdio::inherit()
+        })
+        .stderr(if *quiet {
+            Stdio::null()
+        } else {
+            Stdio::inherit()
+        })
         .arg(match quiet {
             true => "-aq",
             false => "-a",
