@@ -1,20 +1,23 @@
+use std::collections::HashMap;
+use std::io::Error;
 use std::{
     fs,
     io::ErrorKind,
     path::{Path, PathBuf},
 };
 
-use log::{error, info, warn};
+use log::{info, warn};
 
+use crate::category::CategoryConfig;
 use crate::{
-    category::get_category_config, config, move_file, music_tag::get_music_tag, read_dir,
-    Result, search,
+    category::get_category_config, config, move_file, music_tag::get_music_tag, read_dir, search,
+    Result,
 };
 
 pub mod add;
 pub mod cat;
-pub mod down;
 pub mod check;
+pub mod down;
 
 /// Searches for a category, and returns the full category name
 fn find_category(category: &str) -> Result<PathBuf> {
@@ -52,8 +55,103 @@ fn find_category(category: &str) -> Result<PathBuf> {
 
 /// Move a files to a category
 pub fn move_to_category(category: &str, files: &Vec<String>) -> Result<()> {
+    let (category_dir, category_config) = move_setup(category)?;
+
+    for file in files {
+        let file = PathBuf::from(file);
+
+        let album_dir = get_album_dir(&file, &category_dir, &category_config)?;
+
+        move_file(&file, &album_dir)?;
+        info!(
+            "Moved \"{}\" to \"{}\"",
+            file.display(),
+            album_dir.display()
+        );
+    }
+
+    Ok(())
+}
+
+/// Move folder to a category
+pub fn move_album_to_category(category: &str, files: &Vec<String>) -> Result<()> {
+    let (category_dir, category_config) = move_setup(category)?;
+
+    let folder_item: HashMap<&Path, PathBuf> = HashMap::new();
+
+    for file in files {
+        let file = PathBuf::from(file);
+        let parent = file.parent().unwrap();
+        let album_dir = match folder_item.get(parent) {
+            Some(a) => a,
+            None => &get_album_dir(&file, &category_dir, &category_config)?,
+        };
+
+        move_file(&file, album_dir)?;
+        info!(
+            "Moved \"{}\" to \"{}\"",
+            file.display(),
+            album_dir.display()
+        );
+    }
+
+    Ok(())
+}
+
+fn get_album_dir(
+    file: &Path,
+    category_dir: &Path,
+    category_config: &CategoryConfig,
+) -> Result<PathBuf> {
+    // get music tags
+    let music_tag = match get_music_tag(file) {
+        Ok(tag) => tag,
+        Err(err) => {
+            warn!("could not find music tag because {err}");
+
+            // try the untagged directory
+            let untagged_dir = category_dir.join("Untagged");
+            if untagged_dir.is_dir() {
+                return Ok(untagged_dir);
+            }
+            return Err(Box::new(Error::new(
+                ErrorKind::NotFound,
+                "Could not find music tags and untagged directory",
+            )));
+        }
+    };
+
+    let album_dir;
+
+    // check if the category is one artist only
+    if category_config.artist_category.unwrap_or(false) {
+        album_dir = category_dir.join(change_forbidden_chars(&music_tag.album_title));
+        if !album_dir.is_dir() {
+            // if we can't create a directory, we won't try the rest
+            fs::create_dir(&album_dir)?;
+            info!("Created \"{}\" album directory", album_dir.display());
+        }
+    } else {
+        // create the artist and album directories if they do not exist
+        let artist_dir = category_dir.join(change_forbidden_chars(&music_tag.album_artist));
+        if !artist_dir.is_dir() {
+            fs::create_dir(&artist_dir)?;
+            info!("Created \"{}\" artist directory", artist_dir.display());
+        }
+
+        album_dir = artist_dir.join(change_forbidden_chars(&music_tag.album_title));
+        if !album_dir.is_dir() {
+            fs::create_dir(&album_dir)?;
+            info!("Created \"{}\" album directory", album_dir.display());
+        }
+    }
+    Ok(album_dir)
+}
+
+fn move_setup(category: &str) -> Result<(PathBuf, CategoryConfig)> {
     let config = config::get_config()?;
-    // search for dir so short names are possible. otherwise try to use the default directory
+    // search for the directory, so short names are possible,
+    // otherwise try to use the default directory
     let category_dir = match find_category(category) {
         Ok(dir) => dir,
         Err(_) => {
@@ -78,75 +176,9 @@ pub fn move_to_category(category: &str, files: &Vec<String>) -> Result<()> {
             default_dir
         }
     };
-
     let category_config = get_category_config(&category_dir)?;
 
-    for file in files {
-        let file = PathBuf::from(file);
-
-        // get music tags
-        let music_tag = match get_music_tag(&file) {
-            Ok(tag) => tag,
-            Err(err) => {
-                warn!("could not find music tag because {err}");
-
-                // try the untagged directory
-                let untagged_dir = category_dir.join("Untagged");
-                if untagged_dir.is_dir() {
-                    match move_file(&file, &untagged_dir) {
-                        Ok(_) => info!(
-                            "moved \"{}\" to Untagged directory in \"{}\"",
-                            file.display(),
-                            category_dir.display()
-                        ),
-
-                        // if we can't move a file we won't try the rest
-                        Err(err) => {
-                            error!(
-                                "could not move \"{}\" to Untagged directory because error: {err}",
-                                file.display()
-                            );
-                            return Err(err);
-                        }
-                    };
-                }
-                continue;
-            }
-        };
-
-        let album_dir;
-
-        // check if the category is one artist only
-        if category_config.artist_category.unwrap_or(false) {
-            album_dir = category_dir.join(change_forbidden_chars(&music_tag.album_title));
-            if !album_dir.is_dir() {
-                fs::create_dir(&album_dir)?;
-                info!("Created \"{}\" album directory", album_dir.display());
-            }
-        } else {
-            // create artist and album directories if they do not exist
-            let artist_dir = category_dir.join(change_forbidden_chars(&music_tag.album_artist));
-            if !artist_dir.is_dir() {
-                // if we can't create a directory we won't try the rest
-                fs::create_dir(&artist_dir)?;
-                info!("Created \"{}\" artist directory", artist_dir.display());
-            }
-
-            album_dir = artist_dir.join(change_forbidden_chars(&music_tag.album_title));
-            if !album_dir.is_dir() {
-                fs::create_dir(&album_dir)?;
-                info!("Created \"{}\" album directory", album_dir.display());
-            }
-        }
-        move_file(&file, &album_dir)?;
-        info!(
-            "Moved \"{}\" to \"{}\"",
-            file.display(),
-            album_dir.display()
-        );
-    }
-
-    Ok(())
+    Ok((category_dir, category_config))
 }
 
 pub fn change_forbidden_chars(input: &str) -> String {

@@ -66,6 +66,7 @@ fn main() {
             files,
             category,
             force,
+            album,
         } => {
             // check if we get files
             if files.is_empty() {
@@ -73,7 +74,7 @@ fn main() {
                 process::exit(0)
             }
 
-            match add::add(files, category, quiet, *force) {
+            match add::add(files, category, &quiet, force, album) {
                 Ok(_) => process::exit(0),
                 Err(err) => {
                     error!("{err}");

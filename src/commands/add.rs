@@ -4,7 +4,13 @@ use log::error;
 
 use crate::{normalize, Result};
 
-pub fn add(files: &Vec<String>, category: &str, quiet: bool, force: bool) -> Result<()> {
+pub fn add(
+    files: &Vec<String>,
+    category: &str,
+    quiet: &bool,
+    force: &bool,
+    album: &bool,
+) -> Result<()> {
     for file in files {
         let file = PathBuf::from(file);
         if !file.is_file() {
@@ -21,5 +27,9 @@ pub fn add(files: &Vec<String>, category: &str, quiet: bool, force: bool) -> Res
             }
         };
     }
-    super::move_to_category(category, files)
+    if *album {
+        super::move_album_to_category(category, files)
+    } else {
+        super::move_to_category(category, files)
+    }
 }

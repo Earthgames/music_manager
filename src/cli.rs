@@ -28,16 +28,19 @@ pub enum Commands {
         #[clap(default_value_t = String::from("other"))]
         category: String,
     },
+    
     /// Add music to library
     #[clap(name = "add")]
     AddToLib {
         /// Force repay tags to be recalculated
         #[clap(short, long)]
         force: bool,
+        #[clap(short, long)]
+        album: bool,
         #[clap(value_hint=ValueHint::FilePath)]
         files: Vec<String>,
 
-        #[clap(short)]
+        #[clap(short, long)]
         category: String,
     },
 

@@ -17,62 +17,35 @@ pub struct MusicTag {
 
 /// Get a music tag form a file
 pub fn get_music_tag(music_file: &Path) -> Result<MusicTag> {
-    let music_tag;
     let tag = get_tag(music_file)?;
 
     // Song title
     let Some(title) = tag.title() else {
-        error!(
-            "\"{}\" is skipped because it has no title tag",
-            music_file.display()
-        );
         return Err(error("could not find title tag"));
     };
-
     // artist name
     let Some(artist) = tag.artist() else {
-        error!(
-            "{} is skipped because it has no artist tag",
-            music_file.display()
-        );
         return Err(error("could not find artist tag"));
     };
-
     // album title
     let Some(album) = tag.album() else {
-        error!(
-            "{} is skipped because it has no album tag",
-            music_file.display()
-        );
         return Err(error("could not find album tag"));
     };
-
     // album artist
     let Some(album_artist) = tag.get(&ItemKey::AlbumArtist) else {
-        error!(
-            "{} is skipped because it has no album artist tag",
-            music_file.display()
-        );
         return Err(error("could not find album artist tag"));
     };
-    
-    
-
-    {
-        music_tag = MusicTag {
-            song_title: title.to_string(),
-            album_artist: album_artist
-                .clone()
-                .into_value()
-                .into_string()
-                .unwrap_or_default(),
-            album_title: album.to_string(),
-            artist_name: artist.to_string(),
-            replaygain: tag_has_replaygain_tags(tag)?,
-        };
-    }
-
-    Ok(music_tag)
+    Ok(MusicTag {
+        song_title: title.to_string(),
+        album_artist: album_artist
+            .clone()
+            .into_value()
+            .into_string()
+            .unwrap_or_default(),
+        album_title: album.to_string(),
+        artist_name: artist.to_string(),
+        replaygain: tag_has_replaygain_tags(tag)?,
+    })
 }
 
 /// Check if a music file has replaygain tags
