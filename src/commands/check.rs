@@ -2,11 +2,11 @@ use std::path::{Path, PathBuf};
 
 use log::{error, info, warn};
 
+use crate::commands::change_forbidden_chars;
+use crate::music_tag::get_music_tag;
 use crate::{
     category::get_category_config, commands::find_category, config, read_dir, read_pattern, Result,
 };
-use crate::commands::change_forbidden_chars;
-use crate::music_tag::get_music_tag;
 
 const MEDIA_EXTENSIONS: [&str; 82] = [
     "3gp", "3g2", "aa", "aac", "aax", "act", "aiff", "alac", "tak", "amr", "ape", "au", "awb",
@@ -73,7 +73,13 @@ pub fn check(opt_category: &Option<String>, check_tags: &bool) -> Result<()> {
             album_dirs.retain(|x| x.is_dir());
 
             for album_dir in album_dirs {
-                check_album(None, &album_dir, &config.file_extensions, &album_patterns, check_tags)?;
+                check_album(
+                    None,
+                    &album_dir,
+                    &config.file_extensions,
+                    &album_patterns,
+                    check_tags,
+                )?;
             }
         } else {
             let mut artist_dirs = read_dir(&category_dir, None)?;
@@ -122,7 +128,7 @@ fn check_album(
         return Ok(());
     }
     let album_name = album_dir.file_name().unwrap().to_str().unwrap();
-    
+
     if *check_tags && check_path_and_tags(&files, file_extensions, artist, album_name) {
         error = true
     }
@@ -168,7 +174,7 @@ fn check_path_and_tags(
         let extension = file.extension().unwrap().to_string_lossy().to_string();
         // check tags if music file
         if file_extensions.contains(&extension) {
-            let tags = match get_music_tag(&file) {
+            let tags = match get_music_tag(file) {
                 Ok(tags) => tags,
                 Err(err) => {
                     error!(

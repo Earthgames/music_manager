@@ -8,7 +8,8 @@ use colored::Colorize;
 use log::{error, info, warn};
 
 use crate::{
-    category, config::get_config,
+    category,
+    config::get_config,
     music_tag::{get_music_tag, MusicTag},
     read_dir, read_dir_recursive, Result,
 };
@@ -29,13 +30,17 @@ pub fn category(category: &Option<String>) -> Result<()> {
         };
 
         let category_config = category::get_category_config(&category_path)?;
-        
+
         let extensions = config.file_extensions;
 
         let mut music_files: Vec<PathBuf> = vec![];
 
-        for extension in extensions{
-            music_files.append(&mut read_dir_recursive(&category_path, Some(&OsString::from(extension)), 3)?);
+        for extension in extensions {
+            music_files.append(&mut read_dir_recursive(
+                &category_path,
+                Some(&OsString::from(extension)),
+                3,
+            )?);
         }
 
         let mut music_tags: Vec<MusicTag> = vec![];

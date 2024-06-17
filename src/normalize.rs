@@ -8,7 +8,7 @@ use log::{error, info};
 
 use crate::{music_tag::file_has_replaygain_tags, Result};
 
-pub fn normalize(dir: &Path, file: &Path, quiet: bool, force: bool) -> Result<()> {
+pub fn normalize(dir: &Path, file: &Path, quiet: &bool, force: &bool) -> Result<()> {
     if !force && file_has_replaygain_tags(file)? {
         info!(
             "\"{}\" already has replaygain tags, skipping normalizing",

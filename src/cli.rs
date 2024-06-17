@@ -62,8 +62,8 @@ pub enum Commands {
     Check {
         /// The category that needs to be checked, optional
         category: Option<String>,
-        
-        /// If the tags and path needs to be checked, this is a lot slower
+
+        /// If the tags and path need to be checked, this is a lot slower
         #[clap(short, long)]
         tags_path: bool,
     },

@@ -8,7 +8,7 @@ use super::find_category;
 
 /// The download sub command
 /// this will try to download with yt-dlp and normalize with loudgain
-pub fn download(web_address: &str, category: &str, quiet: bool) -> Result<()> {
+pub fn download(web_address: &str, category: &str, quiet: &bool) -> Result<()> {
     // get directory
     let category_dir = find_category(category)?.join("Untagged");
 
@@ -70,7 +70,7 @@ pub fn download(web_address: &str, category: &str, quiet: bool) -> Result<()> {
     info!("Normalizing files");
 
     for file in opus_files {
-        normalize(&category_dir, file, quiet, true)?;
+        normalize(&category_dir, file, quiet, &true)?;
     }
     Ok(())
 }

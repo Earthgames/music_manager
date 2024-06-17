@@ -37,7 +37,7 @@ pub fn read_dir(dir: &Path, file_ext: Option<&OsStr>) -> Result<Vec<PathBuf>> {
             "not a directory",
         )));
     }
-    
+
     // sanitize the directory form pattern matching characters
     let san_dir = PathBuf::from(Pattern::escape(dir.to_str().unwrap()));
 
