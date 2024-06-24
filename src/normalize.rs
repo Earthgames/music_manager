@@ -18,7 +18,7 @@ pub fn normalize(dir: &Path, file: &Path, quiet: &bool, force: &bool) -> Result<
         return Ok(());
     }
 
-    let normalizer = match Command::new("loudgain")
+    let normalizer = match Command::new("rsgain")
         .current_dir(dir)
         .stdout(if *quiet {
             Stdio::null()
@@ -30,6 +30,7 @@ pub fn normalize(dir: &Path, file: &Path, quiet: &bool, force: &bool) -> Result<
         } else {
             Stdio::inherit()
         })
+        .arg("custom")
         .arg(match quiet {
             true => "-aq",
             false => "-a",
@@ -40,20 +41,20 @@ pub fn normalize(dir: &Path, file: &Path, quiet: &bool, force: &bool) -> Result<
     {
         Ok(e) => e,
         Err(err) => {
-            error!("Could not execute loudgain");
+            error!("Could not execute rsgain");
             return Err(err.into());
         }
     };
 
     if !normalizer.success() {
         error!(
-            "loudgain {}\nFailed to normalize audio with loudgain",
+            "rsgain {}\nFailed to normalize audio with rsgain",
             normalizer
         );
         return Err(Box::new(Error::new(
             ErrorKind::Other,
             format!(
-                "Loudgain exited with unsuccessfully with code {}",
+                "Rsgain exited with unsuccessfully with code {}",
                 normalizer
             ),
         )));

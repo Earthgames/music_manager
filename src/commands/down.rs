@@ -1,15 +1,15 @@
-use std::{io::ErrorKind, path::PathBuf, process::Command};
+use std::{io::ErrorKind, process::Command};
 use std::env::current_dir;
 
-use log::{error, info};
+use log::error;
 
-use crate::{normalize::normalize, Result};
+use crate::Result;
 use crate::tag::tag;
 
 use super::find_category;
 
 /// The download sub command
-/// this will try to download with yt-dlp and normalize with loudgain
+/// this will try to download with yt-dlp and normalize with rsgain
 pub fn download(web_address: &str, category: &str, quiet: &bool) -> Result<()> {
     // get directory
     let category_dir = find_category(category)?.join("Untagged");

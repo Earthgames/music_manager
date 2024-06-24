@@ -23,7 +23,7 @@ pub fn add(
         match normalize::normalize(&current_dir()?, &file, quiet, force) {
             Ok(_) => {}
             Err(err) => {
-                error!("Could not normalize with loudgain because {err}")
+                error!("Could not normalize file because of: {err}")
             }
         };
     }

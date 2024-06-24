@@ -24,7 +24,8 @@ Options:
 
 ## How to install
 
-Install [loudgain](https://github.com/Moonbase59/loudgain "https://github.com/Moonbase59/loudgain") and [yt-dlp](https://github.com/yt-dlp/yt-dlp "https://github.com/yt-dlp/yt-dlp"). Making sure that they can be run form a terminal
+Install [rsgain](https://github.com/complexlogic/rsgain "https://github.com/complexlogic/rsgain") and [yt-dlp](https://github.com/yt-dlp/yt-dlp "https://github.com/yt-dlp/yt-dlp").
+Making sure that they can be run form a terminal
 
 Clone this repository and use `cargo install --path .`
 

@@ -211,7 +211,7 @@ pub fn change_forbidden_chars(input: &str) -> String {
             '|' => '｜',
             '?' => '？',
             '*' => '＊',
-            ':' => '：',
+            ':' => '꞉',
             _ => char,
         };
         output.push(char);
