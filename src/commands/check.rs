@@ -147,7 +147,7 @@ fn check_album(
         }
     }
     for pattern in album_patterns {
-        if read_pattern(album_dir.join(pattern).to_str().unwrap())?.is_empty() {
+        if read_pattern(album_dir.join(pattern).to_str().unwrap(), true)?.is_empty() {
             warn!(
                 "    Could not find files for pattern: \"{pattern}\" at \"{}\"",
                 album_dir.display()

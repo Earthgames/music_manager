@@ -6,7 +6,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use glob::{glob, Pattern};
+use glob::{glob, glob_with, MatchOptions, Pattern};
 use log::error;
 
 pub mod category;
@@ -56,7 +56,7 @@ pub fn read_dir(dir: &Path, file_ext: Option<&OsStr>) -> Result<Vec<PathBuf>> {
             )))
         }
     };
-    read_pattern(dir)
+    read_pattern(dir, true)
 }
 
 /// Read a directory recursively to a max depth
@@ -101,9 +101,14 @@ fn read_dir_recursive_intern(
 }
 
 /// Gives a string with all the files in that match a path pattern
-pub fn read_pattern(pattern: &str) -> Result<Vec<PathBuf>> {
+pub fn read_pattern(pattern: &str, case_sensitive: bool) -> Result<Vec<PathBuf>> {
     let mut result: Vec<PathBuf> = Vec::new();
-    for entry in match glob(pattern) {
+    let match_options = MatchOptions {
+        case_sensitive,
+        require_literal_separator: false,
+        require_literal_leading_dot: false,
+    };
+    for entry in match glob_with(pattern, match_options) {
         Ok(paths) => paths,
         Err(err) => return Err(Box::new(err)),
     } {
