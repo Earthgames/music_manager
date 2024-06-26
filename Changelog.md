@@ -1,5 +1,20 @@
 # Change log
 
+## 0.0.4
+
+- Added a tag command, to tag with picard and move automatically to the library
+  - The download command will run the tag command on the downloaded music files
+- Added check function, to check if all files are in the right directory,
+  have files specified in the config in the album folder (like a cover image)
+- Added the ability to add albums, to add albums with there cover in one go
+- Added artist-only categories, these put all the albums in the main category folder,
+- cat works with library structure
+- Replaced loudgain with rsgain
+- Doesn't use tmp directory anymore, uses the Untagged directory instead
+- Use album artist for the artist folder
+  instead of having an artist folder and then the album folder
+- Category config default name is now the folder name
+
 ## 0.0.3
 
 - yt-dlp and loudgain respect loglevel quiet

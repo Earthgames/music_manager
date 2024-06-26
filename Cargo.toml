@@ -1,6 +1,6 @@
 [package]
 name = "music_manager"
-version = "0.0.3"
+version = "0.0.4"
 authors = ["Earthgame_s <earthgame_s@outlook.com>"]
 edition = "2021"
 license = "GPL-3.0-or-later"
@@ -18,9 +18,7 @@ clap = { version = "4.0", features = [
 ] } # command line interface
 clap_complete = "4.4"
 colored = "2.0" # color output and bold and other cool output for terminal
-serde = { version = "1.0", features = [
-    "derive",
-] } # serializing and deserializing
+serde = { version = "1.0", features = ["derive", ] } # serializing and deserializing
 toml = "0.8" # toml format
 simplelog = "0.12" # logging
 log = "0.4" # logging
