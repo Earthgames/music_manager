@@ -1,10 +1,10 @@
-use std::{io::ErrorKind, process::Command};
 use std::env::current_dir;
+use std::{io::ErrorKind, process::Command};
 
 use log::error;
 
-use crate::Result;
 use crate::tag::tag;
+use crate::Result;
 
 use super::find_category;
 

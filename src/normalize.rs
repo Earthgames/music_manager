@@ -53,10 +53,7 @@ pub fn normalize(dir: &Path, file: &Path, quiet: &bool, force: &bool) -> Result<
         );
         return Err(Box::new(Error::new(
             ErrorKind::Other,
-            format!(
-                "Rsgain exited with unsuccessfully with code {}",
-                normalizer
-            ),
+            format!("Rsgain exited with unsuccessfully with code {}", normalizer),
         )));
     };
     info!("Normalized \"{}\"", file.display());

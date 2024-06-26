@@ -6,7 +6,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use glob::{glob, glob_with, MatchOptions, Pattern};
+use glob::{glob_with, MatchOptions, Pattern};
 use log::error;
 
 pub mod category;
