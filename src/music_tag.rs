@@ -1,6 +1,8 @@
 use std::{io::Error, path::Path};
 
-use lofty::{Accessor, ItemKey, Probe, Tag, TagExt, TaggedFileExt};
+use lofty::file::TaggedFileExt;
+use lofty::read_from_path;
+use lofty::tag::{Accessor, ItemKey, Tag, TagExt, TagType};
 
 use crate::Result;
 
@@ -56,14 +58,14 @@ pub fn file_has_replaygain_tags(music_file: &Path) -> Result<bool> {
 pub fn tag_has_replaygain_tags(tag: Tag) -> Result<bool> {
     let result = tag.contains(&ItemKey::ReplayGainTrackGain)
         || tag.contains(&ItemKey::from_key(
-            lofty::TagType::VorbisComments,
+            TagType::VorbisComments,
             "R128_TRACK_GAIN", // for opus and ogg types
         ));
     Ok(result)
 }
 
 fn get_tag(music_file: &Path) -> Result<Tag> {
-    let tagged_file = Probe::open(music_file)?.read()?;
+    let tagged_file = read_from_path(music_file)?;
     let tag = match tagged_file.primary_tag() {
         Some(tag) => tag,
         None => match tagged_file.first_tag() {
