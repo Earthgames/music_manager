@@ -8,14 +8,16 @@ A cli to manage music
 Usage: music_manager [OPTIONS] <COMMAND>
 
 Commands:
-  down <URL> [CATEGORY]    download youtube music and move in a category directory: 
-  cat [CATEGORY]          print categories with a description: 
-  mkcat <CATEGORY> [DESCRIPTION]  
-                        makes a new category directory
-  help                  Print this message or the help of the given subcommand(s)
+  down   <URL> [CATEGORY]   Download music form YouTube, and move in a category directory 
+  cat   [CATEGORY]          Print categories with a description
+  mkcat <CATEGORY> [DESCRIPTION] 
+                            Makes a new category directory
+  check [CATEGORY] [-t]     Check music, -t will make it check all tags(slow)
+  tag   [-f] -c <CATEGORY> [FILES]...
+                            Tag music and move to the library, -f will force to tag all files
+  help                      Print this message or the help of the given subcommand(s)
 
 Options:
-  -c, --clean           Clean tmp directory on exit
   -l, --log_level <LOG_LEVEL>  
                         log level: 0 silent, 1 errors, 2 warnings, 3 info, [default: 3]
   -h, --help            Print help
@@ -24,8 +26,8 @@ Options:
 
 ## How to install
 
-Install [rsgain](https://github.com/complexlogic/rsgain "https://github.com/complexlogic/rsgain") and [yt-dlp](https://github.com/yt-dlp/yt-dlp "https://github.com/yt-dlp/yt-dlp").
-Making sure that they can be run form a terminal
+Install [rsgain](https://github.com/complexlogic/rsgain "https://github.com/complexlogic/rsgain"), [yt-dlp](https://github.com/yt-dlp/yt-dlp "https://github.com/yt-dlp/yt-dlp")(to use down) and [picard](https://github.com/metabrainz/picard "https://github.com/metabrainz/picard")(to use tag).
+Make sure that they can be run form a terminal
 
 Clone this repository and use `cargo install --path .`
 
@@ -64,11 +66,12 @@ The following options are available
 
 - music_dir, the root directory for the music
 - default_dir, the directory where the music without a directory name are put in
-- tmp_dir, the directory where the music is downloaded in
+- file_extensions, which file-extension are allowed in the library
+- album_files, files to check in the album folders, global, like "cover*"
 
 ### Folder structure
 
-An example of a folder structure. Note that the tmp folder does not have to be in the root directory
+An example of a folder structure.
 
 ```text
 .
@@ -80,9 +83,9 @@ An example of a folder structure. Note that the tmp folder does not have to be i
 │   └── description.toml
 ├── rock
 │   └── description.toml
-├── soul
-│   └── description.toml
-└── tmp
+└── soul
+    └── description.toml
+
 ```
 
 A description.toml should be in every folder that can be used by the Music Manager
@@ -91,5 +94,7 @@ the description has the following fields
 
 - name, the name of the music that is in the folder
 - description, a description of the music that is in the folder
+- artist_category, if the albums should be put directly be put in the folder
+- albums_files, files to check in the folder like "cover*"
 
 Note that the name field is not used when searching for a category. But shorts can be used, so: `music_manager down youtube/link j` will result in it being moved to the `j-pop` folder
