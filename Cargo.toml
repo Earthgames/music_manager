@@ -8,6 +8,7 @@ repository = "https://github.com/Earthgames/music_manager"
 categories = ["command-line-utilities"]
 
 [dependencies]
+anyhow = "1.0"
 directories = "5.0" # to get the user directories
 glob = "0.3" # to read directories
 lofty = "0.20.0" # read tags and manipulate all music tags

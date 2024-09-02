@@ -1,9 +1,9 @@
 use std::env::current_dir;
-use std::process;
 
 use clap::Parser;
-use log::{self, error, info};
+use log::{self, info};
 use simplelog::{LevelFilter, TermLogger};
+use std::error::Error;
 
 use cli::{Cli, Commands};
 use music_manager::commands::*;
@@ -11,7 +11,7 @@ use music_manager::tag;
 
 mod cli;
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
     let mut log_config = simplelog::ConfigBuilder::new();
     let mut quiet = false;
@@ -40,34 +40,15 @@ fn main() {
 
     match &cli.command {
         // download YouTube music and move in a category directory
-        Commands::Download { url, category } => match down::download(url, category, &quiet) {
-            Ok(_) => {
-                process::exit(0);
-            }
-            Err(err) => {
-                error!("{err}");
-                process::exit(1);
-            }
-        },
+        Commands::Download { url, category } => down::download(url, category, &quiet)
+        ,
         // print all categories with a description
-        Commands::Categories { category } => match cat::category(category) {
-            Ok(_) => process::exit(0),
-            Err(err) => {
-                error!("{err}");
-                process::exit(1);
-            }
-        },
+        Commands::Categories { category } => cat::category(category),
 
         Commands::MakeCategory {
             category,
             description,
-        } => match cat::mk_category(category, description) {
-            Ok(_) => process::exit(0),
-            Err(err) => {
-                error!("{err}");
-                process::exit(1);
-            }
-        },
+        } => cat::mk_category(category, description),
 
         Commands::AddToLib {
             files,
@@ -78,37 +59,19 @@ fn main() {
             // check if we get files
             if files.is_empty() {
                 info!("No files provided");
-                process::exit(0)
+                return Ok(());
             }
 
-            match add::add(files, category, &quiet, force, album) {
-                Ok(_) => process::exit(0),
-                Err(err) => {
-                    error!("{err}");
-                    process::exit(1);
-                }
-            }
+            add::add(files, category, &quiet, force, album)
         }
         Commands::Check {
             category,
             tags_path,
-        } => match check::check(category, tags_path) {
-            Ok(_) => process::exit(0),
-            Err(err) => {
-                error!("{err}");
-                process::exit(1);
-            }
-        },
+        } => check::check(category, tags_path),
         Commands::Tag {
             category,
             files,
             force,
-        } => match tag::tag(current_dir().unwrap(), files, category, &quiet, force) {
-            Ok(_) => process::exit(0),
-            Err(err) => {
-                error!("{err}");
-                process::exit(1);
-            }
-        },
-    };
+        } => tag::tag(current_dir().unwrap(), files, category, &quiet, force),
+    }
 }
