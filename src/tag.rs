@@ -19,7 +19,7 @@ pub fn tag(
     // Retain files without tags
     files.retain(|file| {
         if !force && get_music_tag(file.as_ref()).is_ok() {
-            info!("\"{}\" already has music tags, skipping tagging", file);
+            warn!("\"{}\" already has music tags, skipping tagging", file);
             tagged.push(file.clone());
             false
         } else {
@@ -51,8 +51,8 @@ pub fn tag(
         let mut tagged_files: Vec<String> = files.clone();
         tagged_files.retain(|file| get_music_tag(file.as_ref()).is_ok());
         add(&tagged_files, category, quiet, force, &true)?;
-        // move_album_to_category(category, &tagged_files, true)?;
     } else {
+        // In main the empty files is checked
         warn!("All files where tagged")
     }
     Ok(())

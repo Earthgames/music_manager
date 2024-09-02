@@ -6,7 +6,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use log::{info, warn};
+use log::{error, info, warn};
 
 use crate::category::CategoryConfig;
 use crate::{
@@ -170,7 +170,7 @@ fn move_setup(category: &str) -> Result<(PathBuf, CategoryConfig)> {
     let category_dir = match find_category(category) {
         Ok(dir) => dir,
         Err(_) => {
-            warn!("category {category} not found");
+            error!("category {category} not found");
 
             // try moving to the default directory
             let default_dir = config.default_dir;
@@ -184,7 +184,7 @@ fn move_setup(category: &str) -> Result<(PathBuf, CategoryConfig)> {
                 )));
             }
 
-            info!(
+            warn!(
                 "The files where moved to \"{}\" because the category was not found",
                 default_dir.to_str().unwrap()
             );
