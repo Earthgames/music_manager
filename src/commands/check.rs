@@ -1,5 +1,6 @@
 use std::path::{Path, PathBuf};
 
+use glob::Pattern;
 use log::{error, info, warn};
 
 use crate::commands::change_forbidden_chars;
@@ -115,8 +116,6 @@ fn check_album(
     album_patterns: &[&String],
     check_tags: &bool,
 ) -> Result<()> {
-    //TODO add a option to check if some files exist in the album directory
-
     // get files
     let mut files = read_dir(album_dir, None)?;
     files.retain(|x| x.is_file());
@@ -147,7 +146,16 @@ fn check_album(
         }
     }
     for pattern in album_patterns {
-        if read_pattern(album_dir.join(pattern).to_str().unwrap(), true)?.is_empty() {
+        if read_pattern(
+            &format!(
+                "{}/{}",
+                Pattern::escape(album_dir.to_str().unwrap()),
+                pattern
+            ),
+            true,
+        )?
+        .is_empty()
+        {
             warn!(
                 "    Could not find files for pattern: \"{pattern}\" at \"{}\"",
                 album_dir.display()
