@@ -41,7 +41,7 @@ pub enum Commands {
         #[clap(short, long)]
         force: bool,
         #[clap(short, long)]
-        album: bool,
+        singles: bool,
         #[clap(value_hint=ValueHint::FilePath)]
         files: Vec<String>,
 

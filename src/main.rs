@@ -54,7 +54,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             files,
             category,
             force,
-            album,
+            singles,
         } => {
             // check if we get files
             if files.is_empty() {
@@ -62,7 +62,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 return Ok(());
             }
 
-            add::add(files, category, &quiet, force, album)
+            add::add(files, category, &quiet, force, &!singles)
         }
         Commands::Check {
             category,
