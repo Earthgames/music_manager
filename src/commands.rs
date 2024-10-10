@@ -83,8 +83,8 @@ pub fn move_album_to_category(category: &str, files: &Vec<String>, cover: bool) 
         let file = PathBuf::from(file);
         let parent = file.parent().unwrap();
         let album_dir = match folder_item.get(parent) {
-            Some(a) => a,
-            None => &*{
+            Some(a) => a.to_owned(),
+            None => {
                 let album_dir = get_album_dir(&file, &category_dir, &category_config)?;
                 if cover {
                     let covers =
@@ -99,10 +99,10 @@ pub fn move_album_to_category(category: &str, files: &Vec<String>, cover: bool) 
                     }
                 }
                 album_dir
-            },
+            }
         };
 
-        move_file(&file, album_dir)?;
+        move_file(&file, &album_dir)?;
         info!(
             "Moved \"{}\" to \"{}\"",
             file.display(),
