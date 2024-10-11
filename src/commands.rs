@@ -89,7 +89,11 @@ pub fn move_album_to_category(category: &str, files: &Vec<String>, cover: bool) 
                 let album_dir = get_album_dir(&file, &category_dir, &category_config)?;
                 if cover {
                     let covers = read_pattern(
-                        &Pattern::escape(parent.join("cover.*").to_str().unwrap()),
+                        &format!(
+                            "{}/{}",
+                            Pattern::escape(parent.to_str().unwrap()),
+                            "cover.*"
+                        ),
                         false,
                     )?;
                     move_files(&covers, &album_dir)?;
