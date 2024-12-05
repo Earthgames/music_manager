@@ -1,10 +1,11 @@
 use std::env::current_dir;
-use std::{io::ErrorKind, process::Command};
+use std::process::Command;
 
 use log::error;
 
+use anyhow::{anyhow, Context, Result};
+
 use crate::tag::tag;
-use crate::Result;
 
 use super::find_category;
 
@@ -17,8 +18,8 @@ pub fn download(web_address: &str, category: &str, quiet: &bool) -> Result<()> {
     let category_dir_content = super::read_dir(&category_dir, None)?;
 
     // download from yt with yt-dlp
-    //TODO use --print for yt-dlp and use that
-    let downloader = match Command::new("yt-dlp")
+    //TODO: use --print for yt-dlp and use that
+    let downloader = Command::new("yt-dlp")
         .args([
             "--extract-audio",
             "-f",
@@ -34,23 +35,14 @@ pub fn download(web_address: &str, category: &str, quiet: &bool) -> Result<()> {
         .arg(web_address)
         .current_dir(&category_dir)
         .status()
-    {
-        Ok(e) => e,
-        Err(err) => {
-            error!("Could not use yt-dlp command");
-            return Err(err.into());
-        }
-    };
+        .context("Could not use yt-dlp command")?;
 
     if !downloader.success() {
         error!("yt-dlp {}", downloader);
-        return Err(Box::new(std::io::Error::new(
-            ErrorKind::Other,
-            "Failed to download with yt-dlp",
-        )));
+        return Err(anyhow!("Failed to download with yt-dlp"));
     };
 
-    // creates a vector with only the newly created opus files
+    // Creates a vector with only the newly created opus files
     let mut opus_files: Vec<String> = Vec::new();
     let category_dir_content_after = super::read_dir(&category_dir, None)?;
     if !category_dir_content.is_empty() {

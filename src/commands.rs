@@ -6,13 +6,15 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use anyhow::{anyhow, Result};
+
 use glob::Pattern;
 use log::{error, info, warn};
 
 use crate::category::CategoryConfig;
 use crate::{
     category::get_category_config, config, move_file, move_files, music_tag::get_music_tag,
-    read_dir, read_pattern, search, Result,
+    read_dir, read_pattern, search,
 };
 
 pub mod add;
@@ -39,10 +41,7 @@ fn find_category(category: &str) -> Result<PathBuf> {
 
     // check if we found anything
     if category_names.is_empty() {
-        return Err(Box::new(std::io::Error::new(
-            ErrorKind::NotFound,
-            "No directory found",
-        )));
+        return Err(anyhow!("Nothing found"));
     }
 
     if category_names.len() > 1 {
@@ -136,10 +135,7 @@ fn get_album_dir(
             if untagged_dir.is_dir() {
                 return Ok(untagged_dir);
             }
-            return Err(Box::new(Error::new(
-                ErrorKind::NotFound,
-                "Could not find music tags and untagged directory",
-            )));
+            return Err(anyhow!("Could not find music tags and untagged directory"));
         }
     };
 
@@ -184,11 +180,7 @@ fn move_setup(category: &str) -> Result<(PathBuf, CategoryConfig)> {
 
             if !Path::new(&default_dir).is_dir() {
                 warn!("The default_dir is not in {}", default_dir.display());
-
-                return Err(Box::new(std::io::Error::new(
-                    ErrorKind::NotFound,
-                    "Could not find the category and default directory",
-                )));
+                return Err(anyhow!("Could not find the category and default directory"));
             }
 
             warn!(

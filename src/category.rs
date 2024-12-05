@@ -1,9 +1,11 @@
-use std::{fs, io::Error, path::Path};
+use std::{fs, path::Path};
 
 use log::{debug, error, info};
 use serde::{Deserialize, Serialize};
 
-use crate::{create_file, Result};
+use anyhow::{Context, Result};
+
+use crate::create_file;
 
 /// Config for the category
 #[derive(Deserialize, Serialize)]
@@ -33,16 +35,18 @@ pub fn get_category_config(category_path: &Path) -> Result<CategoryConfig> {
         create_category_config(category_path, None, None)?;
     }
 
-    let contents = fs::read_to_string(description_path)?;
-    let description: CategoryConfig = match toml::from_str(contents.as_str()) {
-        Ok(dis) => dis,
-        Err(err) => return Err(Box::new(Error::new(std::io::ErrorKind::Other, err))),
-    };
+    let contents = fs::read_to_string(&description_path)?;
+    let description: CategoryConfig = toml::from_str(contents.as_str()).with_context(|| {
+        format!(
+            "Could not serialize category config: \"{}\"",
+            description_path.display()
+        )
+    })?;
 
     Ok(description)
 }
 
-//TODO add for every category https://xspf.org/applications
+//TODO: add playlist for every category with https://xspf.org/applications
 pub fn create_category_config(
     category_path: &Path,
     category_name: Option<&str>,

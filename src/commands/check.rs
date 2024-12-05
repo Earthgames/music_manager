@@ -3,10 +3,12 @@ use std::path::{Path, PathBuf};
 use glob::Pattern;
 use log::{error, info, warn};
 
+use anyhow::Result;
+
 use crate::commands::change_forbidden_chars;
 use crate::music_tag::get_music_tag;
 use crate::{
-    category::get_category_config, commands::find_category, config, read_dir, read_pattern, Result,
+    category::get_category_config, commands::find_category, config, read_dir, read_pattern,
 };
 
 const MEDIA_EXTENSIONS: [&str; 82] = [
@@ -26,7 +28,7 @@ const MEDIA_EXTENSIONS: [&str; 82] = [
 /// -
 
 pub fn check(opt_category: &Option<String>, check_tags: &bool) -> Result<()> {
-    //TODO add auto rectify option
+    //TODO: add auto rectify option
 
     // get config
     let config = config::get_config()?;

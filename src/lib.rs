@@ -1,13 +1,13 @@
 use std::{
     ffi::OsStr,
     fs::{self, File},
-    io::{Error, ErrorKind},
     os::unix::fs::FileExt,
     path::{Path, PathBuf},
 };
 
 use glob::{glob_with, MatchOptions, Pattern};
-use log::error;
+
+use anyhow::{anyhow, Context, Result};
 
 pub mod category;
 pub mod commands;
@@ -32,11 +32,7 @@ pub fn create_file(path: &Path, content: String) -> Result<()> {
 pub fn read_dir(dir: &Path, file_ext: Option<&OsStr>) -> Result<Vec<PathBuf>> {
     // check if it is a directory
     if !dir.is_dir() {
-        error!("\"{}\" is a not a directory", dir.display());
-        return Err(Box::new(Error::new(
-            ErrorKind::InvalidInput,
-            "not a directory",
-        )));
+        return Err(anyhow!("Not a directory"));
     }
 
     // sanitize the directory form pattern matching characters
@@ -47,15 +43,7 @@ pub fn read_dir(dir: &Path, file_ext: Option<&OsStr>) -> Result<Vec<PathBuf>> {
         None => san_dir.join("*"),
     };
 
-    let dir = match search.to_str() {
-        Some(dir) => dir,
-        None => {
-            return Err(Box::new(Error::new(
-                ErrorKind::NotFound,
-                "Could not find directory",
-            )))
-        }
-    };
+    let dir = search.to_str().ok_or(anyhow!("Could not find directory"))?;
     read_pattern(dir, true)
 }
 
@@ -67,7 +55,7 @@ pub fn read_dir_recursive(
     file_ext: Option<&OsStr>,
     max_depth: u8,
 ) -> Result<Vec<PathBuf>> {
-    read_dir_recursive_intern(dir, file_ext, 0, max_depth)
+    read_dir_recursive_intern(dir, file_ext, 0, max_depth).context("Failed recursive read")
 }
 
 fn read_dir_recursive_intern(
@@ -81,7 +69,7 @@ fn read_dir_recursive_intern(
         return Ok(vec![]);
     }
 
-    // search dir
+    // search directory
     let in_dir = read_dir(dir, None)?;
     let mut result = vec![];
 
@@ -108,14 +96,8 @@ pub fn read_pattern(pattern: &str, case_sensitive: bool) -> Result<Vec<PathBuf>>
         require_literal_separator: false,
         require_literal_leading_dot: false,
     };
-    for entry in match glob_with(pattern, match_options) {
-        Ok(paths) => paths,
-        Err(err) => return Err(Box::new(err)),
-    } {
-        match entry {
-            Ok(entry) => result.push(entry),
-            Err(err) => return Err(Box::new(err)),
-        }
+    for entry in glob_with(pattern, match_options).context("Glob problem")? {
+        result.push(entry.context("Glob entry problem")?);
     }
     Ok(result)
 }
@@ -136,9 +118,11 @@ fn search(query: &str, content: Vec<String>) -> Vec<String> {
 /// Move files to the target directory
 pub fn move_files(target_files: &Vec<PathBuf>, target_dir: &Path) -> Result<()> {
     for file in target_files {
-        match move_file(&PathBuf::from(file), target_dir) {
-            Ok(_) => (),
-            Err(err) => error!("could not move {} because of {err}", file.display()),
+        if let Err(err) = move_file(&PathBuf::from(file), target_dir) {
+            return Err(anyhow!(
+                "could not move {} because of {err}",
+                file.display()
+            ));
         }
     }
     Ok(())
@@ -146,30 +130,10 @@ pub fn move_files(target_files: &Vec<PathBuf>, target_dir: &Path) -> Result<()> 
 
 /// Move a file to the target directory
 pub fn move_file(target_file: &Path, target_dir: &Path) -> Result<()> {
-    // get the file name
-    let file_name = match target_file.file_name() {
-        Some(name) => match name.to_str() {
-            Some(name) => name,
-            None => {
-                // can this happen ??
-                return Err(Box::new(Error::new(
-                    ErrorKind::InvalidInput,
-                    "target_file has no filename",
-                )));
-            }
-        },
-        None => {
-            return Err(Box::new(Error::new(
-                ErrorKind::InvalidInput,
-                "target_file is not valid file",
-            )))
-        }
-    };
+    let file_name = target_file
+        .file_name()
+        .ok_or(anyhow!("target_file is not a valid file"))?;
 
     // move the file
-    fs::rename(target_file, target_dir.join(file_name))?;
-    Ok(())
+    fs::rename(target_file, target_dir.join(file_name)).context("Rename failed")
 }
-
-/// Shorthand for Result
-pub type Result<T, E = Box<dyn std::error::Error>> = std::result::Result<T, E>;

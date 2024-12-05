@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand, ValueHint};
 
-//TODO add https://docs.rs/clap/4.1.4/clap/builder/enum.ValueHint.html
+//TODO: add https://docs.rs/clap/4.1.4/clap/builder/enum.ValueHint.html
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 #[clap(propagate_version = true)]

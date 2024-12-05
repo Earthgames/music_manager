@@ -7,11 +7,13 @@ use std::{
 use colored::Colorize;
 use log::{error, info, warn};
 
+use anyhow::Result;
+
 use crate::{
     category,
     config::get_config,
     music_tag::{get_music_tag, MusicTag},
-    read_dir, read_dir_recursive, Result,
+    read_dir, read_dir_recursive,
 };
 
 /// Print details about categories

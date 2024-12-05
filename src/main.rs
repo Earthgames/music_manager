@@ -9,9 +9,11 @@ use cli::{Cli, Commands};
 use music_manager::commands::*;
 use music_manager::tag;
 
+use anyhow::Result;
+
 mod cli;
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<()> {
     let cli = Cli::parse();
     let mut log_config = simplelog::ConfigBuilder::new();
     let mut quiet = false;

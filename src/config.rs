@@ -8,7 +8,9 @@ use directories::{BaseDirs, UserDirs};
 use log::{error, info, warn};
 use serde::{Deserialize, Serialize};
 
-use crate::{create_file, Result};
+use anyhow::{anyhow, Context, Result};
+
+use crate::create_file;
 
 #[derive(Deserialize, Serialize)]
 pub struct Config {
@@ -23,27 +25,13 @@ pub struct Config {
 }
 
 pub fn get_config() -> Result<Config> {
-    let base_dir = match BaseDirs::new() {
-        Some(dir) => dir,
-        None => {
-            return Err(Box::new(std::io::Error::new(
-                ErrorKind::NotFound,
-                "Could not find directories",
-            )))
-        }
-    };
+    let base_dir = BaseDirs::new().ok_or(anyhow!("Could not find directories"))?;
     let config_dir = BaseDirs::config_dir(&base_dir);
     let config_path = config_dir.join("music_manager/config.toml");
 
     // get content or create new content
     let config: Config = match fs::read_to_string(config_path) {
-        Ok(cont) => match toml::from_str(cont.as_str()) {
-            Ok(cont) => cont,
-            Err(err) => {
-                error!("Could not read config");
-                return Err(Box::new(err));
-            }
-        },
+        Ok(cont) => toml::from_str(cont.as_str()).context("Could not read config")?,
         Err(err) => {
             return match err.kind() {
                 ErrorKind::NotFound => {
@@ -51,7 +39,7 @@ pub fn get_config() -> Result<Config> {
                     let config = make_config()?;
                     Ok(config)
                 }
-                _ => Err(Box::new(err)),
+                _ => Err(anyhow!("Could not get config because of {err}")),
             }
         }
     };
@@ -60,25 +48,15 @@ pub fn get_config() -> Result<Config> {
 }
 
 fn make_config() -> Result<Config> {
-    let base_dir = match BaseDirs::new() {
-        Some(dir) => dir,
-        None => {
-            return Err(Box::new(std::io::Error::new(
-                ErrorKind::NotFound,
-                "Could not find directories",
-            )))
-        }
-    };
+    let base_dir = BaseDirs::new().ok_or(anyhow!("Could not find directories"))?;
     let config_dir = BaseDirs::config_dir(&base_dir);
-    match fs::create_dir(config_dir.join("music_manager")) {
-        Ok(_) => (),
-        Err(err) => match err.kind() {
+    if let Err(err) = fs::create_dir(config_dir.join("music_manager")) {
+        match err.kind() {
             ErrorKind::AlreadyExists => warn!("Directory already exists"),
             _ => {
-                error!("Could not make directory\n{err}");
-                return Err(Box::new(err));
+                return Err(anyhow!("Could not make directory\n{err}"));
             }
-        },
+        }
     }
     let music_dir = Path::new(&get_dir_music()?).to_owned();
     let default_dir = music_dir.join("other");
@@ -89,11 +67,7 @@ fn make_config() -> Result<Config> {
         album_files: None,
     };
 
-    let content = match toml::to_string(&config) {
-        Ok(cont) => cont,
-        Err(err) => return Err(Box::new(std::io::Error::new(ErrorKind::Other, err))),
-    };
-
+    let content = toml::to_string(&config).context("deserialize config")?;
     create_file(&config_dir.join("music_manager/config.toml"), content)?;
     Ok(config)
 }

@@ -1,10 +1,10 @@
-use std::{io::Error, path::Path};
+use std::path::Path;
 
 use lofty::file::TaggedFileExt;
 use lofty::read_from_path;
 use lofty::tag::{Accessor, ItemKey, Tag, TagExt, TagType};
 
-use crate::Result;
+use anyhow::{anyhow, Result};
 
 /// Type to store music albums and songs
 #[derive(Eq, Ord, PartialEq, PartialOrd)]
@@ -22,19 +22,19 @@ pub fn get_music_tag(music_file: &Path) -> Result<MusicTag> {
 
     // Song title
     let Some(title) = tag.title() else {
-        return Err(error("could not find title tag"));
+        return Err(anyhow!("could not find title tag"));
     };
     // artist name
     let Some(artist) = tag.artist() else {
-        return Err(error("could not find artist tag"));
+        return Err(anyhow!("could not find artist tag"));
     };
     // album title
     let Some(album) = tag.album() else {
-        return Err(error("could not find album tag"));
+        return Err(anyhow!("could not find album tag"));
     };
     // album artist
     let Some(album_artist) = tag.get(&ItemKey::AlbumArtist) else {
-        return Err(error("could not find album artist tag"));
+        return Err(anyhow!("could not find album artist tag"));
     };
     Ok(MusicTag {
         song_title: title.to_string(),
@@ -45,23 +45,23 @@ pub fn get_music_tag(music_file: &Path) -> Result<MusicTag> {
             .unwrap_or_default(),
         album_title: album.to_string(),
         artist_name: artist.to_string(),
-        replaygain: tag_has_replaygain_tags(tag)?,
+        replaygain: tag_has_replaygain_tags(tag),
     })
 }
 
 /// Check if a music file has replaygain tags
 pub fn file_has_replaygain_tags(music_file: &Path) -> Result<bool> {
     let tag = get_tag(music_file)?;
-    tag_has_replaygain_tags(tag)
+    Ok(tag_has_replaygain_tags(tag))
 }
 
-pub fn tag_has_replaygain_tags(tag: Tag) -> Result<bool> {
+pub fn tag_has_replaygain_tags(tag: Tag) -> bool {
     let result = tag.contains(&ItemKey::ReplayGainTrackGain)
         || tag.contains(&ItemKey::from_key(
             TagType::VorbisComments,
             "R128_TRACK_GAIN", // for opus and ogg types
         ));
-    Ok(result)
+    result
 }
 
 fn get_tag(music_file: &Path) -> Result<Tag> {
@@ -70,12 +70,13 @@ fn get_tag(music_file: &Path) -> Result<Tag> {
         Some(tag) => tag,
         None => match tagged_file.first_tag() {
             Some(tag) => tag,
-            None => return Err(error("No tag found")),
+            None => {
+                return Err(anyhow!(
+                    "No tag found in file : \"{}\"",
+                    music_file.display()
+                ))
+            }
         },
     };
     Ok(tag.clone())
-}
-
-fn error(error: &str) -> Box<Error> {
-    Box::new(Error::new(std::io::ErrorKind::NotFound, error))
 }

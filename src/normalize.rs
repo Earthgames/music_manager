@@ -1,13 +1,10 @@
 use std::process::Stdio;
-use std::{
-    io::{Error, ErrorKind},
-    path::Path,
-    process::Command,
-};
+use std::{path::Path, process::Command};
 
+use anyhow::{anyhow, Context, Result};
 use log::{error, info};
 
-use crate::{music_tag::file_has_replaygain_tags, Result};
+use crate::music_tag::file_has_replaygain_tags;
 
 pub fn normalize(dir: &Path, file: &Path, quiet: &bool, force: &bool) -> Result<()> {
     normalize_files(dir, &[file], quiet, force)
@@ -30,7 +27,7 @@ pub fn normalize_files(dir: &Path, files: &[&Path], quiet: &bool, force: &bool) 
         return Ok(());
     }
 
-    let normalizer = match Command::new("rsgain")
+    let normalizer = Command::new("rsgain")
         .current_dir(dir)
         .stdout(if *quiet {
             Stdio::null()
@@ -54,23 +51,17 @@ pub fn normalize_files(dir: &Path, files: &[&Path], quiet: &bool, force: &bool) 
         .args(["-s", "i"]) // output mode i =  write replaygain2.0 tags plus extra tags
         .args(files)
         .status()
-    {
-        Ok(e) => e,
-        Err(err) => {
-            error!("Could not execute rsgain");
-            return Err(err.into());
-        }
-    };
+        .context("Could not execute rsgain")?;
 
     if !normalizer.success() {
         error!(
             "rsgain {}\nFailed to normalize audio with rsgain",
             normalizer
         );
-        return Err(Box::new(Error::new(
-            ErrorKind::Other,
-            format!("Rsgain exited with unsuccessfully with code {}", normalizer),
-        )));
+        return Err(anyhow!(
+            "Rsgain exited with unsuccessfully with code {}",
+            normalizer
+        ));
     };
     info!(
         "Normalized: {}",

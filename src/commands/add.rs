@@ -1,11 +1,9 @@
 use std::{env::current_dir, io::Error, path::PathBuf};
 
+use anyhow::{anyhow, Result};
 use log::error;
 
-use crate::{
-    normalize::{self, normalize_files},
-    Result,
-};
+use crate::normalize::{self, normalize_files};
 
 pub fn add(
     files: &Vec<String>,
@@ -17,11 +15,7 @@ pub fn add(
     for file in files {
         let file = PathBuf::from(file);
         if !file.is_file() {
-            error!("{} is not a file", file.display());
-            return Err(Box::new(Error::new(
-                std::io::ErrorKind::InvalidInput,
-                "not a file",
-            )));
+            return Err(anyhow!("{} is not a file", file.display()));
         }
         if !album {
             match normalize::normalize(&current_dir()?, &file, quiet, force) {
