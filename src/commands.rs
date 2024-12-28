@@ -7,7 +7,7 @@ use std::{
 use anyhow::{anyhow, Result};
 
 use glob::Pattern;
-use log::{error, info, warn};
+use log::{debug, error, info, warn};
 
 use crate::category::CategoryConfig;
 use crate::{
@@ -55,6 +55,8 @@ fn find_category(category: &str) -> Result<PathBuf> {
 pub fn move_to_category(category: &str, files: &Vec<String>) -> Result<()> {
     let (category_dir, category_config) = move_setup(category)?;
 
+    debug!("Start move to category");
+
     for file in files {
         let file = PathBuf::from(file);
 
@@ -74,10 +76,12 @@ pub fn move_to_category(category: &str, files: &Vec<String>) -> Result<()> {
 /// Move folder per album to a category
 pub fn move_album_to_category(category: &str, files: &Vec<String>, cover: bool) -> Result<()> {
     let (category_dir, category_config) = move_setup(category)?;
+    debug!("Start move album to category");
 
     let folder_item: HashMap<&Path, PathBuf> = HashMap::new();
 
     for file in files {
+        debug!("Start getting album for file: {}", file);
         let file = PathBuf::from(file).canonicalize()?;
         let parent = file.parent().unwrap();
         let album_dir = match folder_item.get(parent) {
@@ -85,6 +89,7 @@ pub fn move_album_to_category(category: &str, files: &Vec<String>, cover: bool) 
             None => {
                 let album_dir = get_album_dir(&file, &category_dir, &category_config)?;
                 if cover {
+                    debug!("Trying to find cover for album {}", parent.display());
                     let covers = read_pattern(
                         &format!(
                             "{}/{}",
@@ -93,6 +98,7 @@ pub fn move_album_to_category(category: &str, files: &Vec<String>, cover: bool) 
                         ),
                         false,
                     )?;
+                    debug!("Found cover: {:?}", covers);
                     move_files(&covers, &album_dir)?;
                     for cover in covers {
                         info!(
