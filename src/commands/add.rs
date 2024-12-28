@@ -1,4 +1,4 @@
-use std::{env::current_dir, io::Error, path::PathBuf};
+use std::{env::current_dir, path::PathBuf};
 
 use anyhow::{anyhow, Result};
 use log::error;

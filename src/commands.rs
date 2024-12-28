@@ -1,8 +1,6 @@
 use std::collections::HashMap;
-use std::io::Error;
 use std::{
     fs,
-    io::ErrorKind,
     path::{Path, PathBuf},
 };
 

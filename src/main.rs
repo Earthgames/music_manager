@@ -3,7 +3,6 @@ use std::env::current_dir;
 use clap::Parser;
 use log::{self, info};
 use simplelog::{LevelFilter, TermLogger};
-use std::error::Error;
 
 use cli::{Cli, Commands};
 use music_manager::commands::*;
