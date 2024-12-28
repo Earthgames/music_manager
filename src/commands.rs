@@ -78,7 +78,7 @@ pub fn move_album_to_category(category: &str, files: &Vec<String>, cover: bool) 
     let folder_item: HashMap<&Path, PathBuf> = HashMap::new();
 
     for file in files {
-        let file = PathBuf::from(file);
+        let file = PathBuf::from(file).canonicalize()?;
         let parent = file.parent().unwrap();
         let album_dir = match folder_item.get(parent) {
             Some(a) => a.to_owned(),
